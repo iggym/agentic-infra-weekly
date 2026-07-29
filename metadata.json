@@ -27,7 +27,7 @@
     "research_window": "2026-07-06 to 2026-07-12"
   },
   {
-    "week": 27,
+    "week": 27.1,
     "date": "2026-07-03",
     "filename": "articles/crying-wolf-in-code.html",
     "title": "Crying Wolf in Code",
@@ -36,7 +36,7 @@
     "research_window": "2026-03-23 to 2026-03-29"
   },
   {
-    "week": 27,
+    "week": 27.2,
     "date": "2026-07-03",
     "filename": "articles/mind-the-gap.html",
     "title": "Mind the Gap",
@@ -63,7 +63,7 @@
     "research_window": "2026-02-23 to 2026-06-07"
   },
   {
-    "week": 21,
+    "week": 21.1,
     "date": "2024-05-22",
     "filename": "articles/watching-the-wrong-dial.html",
     "title": "Watching the Wrong Dial",
@@ -72,7 +72,16 @@
     "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
   },
   {
-    "week": 21,
+    "week": 21.2,
+    "date": "2026-05-18",
+    "filename": "articles/the-desired-state-delusion.html",
+    "title": "The Desired State Delusion",
+    "topic": "Kubernetes & DevOps",
+    "bold_reframe": "GitOps isn't pulling your infrastructure closer to desired state; it's accelerating drift by treating infrastructure as version-controlled code rather than ephemeral state.",
+    "research_window": "2026-02-09 to 2026-02-15"
+  },
+  {
+    "week": 21.3,
     "date": "2024-05-21",
     "filename": "articles/automating-the-outage.html",
     "title": "Automating the Outage",
@@ -99,7 +108,7 @@
     "research_window": "2026-03-16 to 2026-05-03"
   },
   {
-    "week": 18,
+    "week": 18.1,
     "date": "2026-05-04",
     "filename": "articles/the-paved-path-illusion.html",
     "title": "The Paved Path Illusion",
@@ -108,7 +117,7 @@
     "research_window": "2026-02-09 to 2026-05-03"
   },
   {
-    "week": 18,
+    "week": 18.2,
     "date": "2026-04-27",
     "filename": "articles/paved-with-good-intentions.html",
     "title": "Paved With Good Intentions",
@@ -135,14 +144,14 @@
     "research_window": "2023-11-01 to 2024-03-31"
   },
   {
-  "week": 15,
-  "date": "2026-04-06",
-  "filename": "articles/automating-the-wrong-thing.html",
-  "title": "Automating the Wrong Thing",
-  "topic": "Kubernetes & DevOps",
-  "bold_reframe": "GitOps doesn't prevent outages; it just automates how fast you can break everything.",
-  "research_window": "2026-01-12 to 2026-04-12"
-},
+    "week": 15,
+    "date": "2026-04-06",
+    "filename": "articles/automating-the-wrong-thing.html",
+    "title": "Automating the Wrong Thing",
+    "topic": "Kubernetes & DevOps",
+    "bold_reframe": "GitOps doesn't prevent outages; it just automates how fast you can break everything.",
+    "research_window": "2026-01-12 to 2026-04-12"
+  },
   {
     "week": 14,
     "date": "2026-03-30",
@@ -160,22 +169,5 @@
     "topic": "Observability",
     "bold_reframe": "AI observability isn't about tracing what the model did; it's about observing what the harness allowed it to do.",
     "research_window": "2025-12-15 to 2026-03-29"
-  },{
-  "week": 12,
-  "date": "2026-03-16",
-  "filename": "articles/paved-with-good-intentions.html",
-  "title": "Paved With Good Intentions",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Paved paths don't eliminate complexity—they concentrate it at the boundary. The most dangerous moment isn't when someone follows the path, it's when they step off it.",
-  "research_window": "2025-12-08 to 2026-03-22"
-},
-  {
-  "week": 11,
-  "date": "2026-03-09",
-  "filename": "articles/now-you-dont.html",
-  "title": "Now You Don't",
-  "topic": "Developer Enablement",
-  "bold_reframe": "Your developer platform isn't failing because it lacks features — it's failing because engineers have to go to it. The best platform is the one nobody visits.",
-  "research_window": "2025-12-01 to 2026-03-15"
-}
+  }
 ]
