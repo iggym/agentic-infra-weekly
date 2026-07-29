@@ -36,6 +36,15 @@
   "research_window": "2026-05-04 to 2026-05-10"
 },
   {
+  "week": 26,
+  "date": "2026-06-22",
+  "filename": "articles/guard-the-graph.html",
+  "title": "Guard the Graph",
+  "topic": "Security & Governance",
+  "bold_reframe": "Your AI agent security model is backwards — you're guarding the prompt when you should be guarding the tool graph. The blast radius isn't what you tell the agent, it's what the agent can reach.",
+  "research_window": "2026-02-23 to 2026-06-28"
+},
+  {
     "week": 21,
     "date": "2024-05-22",
     "filename": "articles/watching-the-wrong-dial.html",
