@@ -1,0 +1,11 @@
+[
+  {
+    "week": 31,
+    "date": "2026-07-29",
+    "filename": "week-31.html",
+    "title": "Why AI Observability Alerts on the Wrong Signal",
+    "topic": "Observability",
+    "bold_reframe": "Tracing latency on LLM calls is a distraction — what actually breaks autonomous agents is cumulative context drift.",
+    "research_window": "2026-01-26 to 2026-07-26"
+  }
+]
