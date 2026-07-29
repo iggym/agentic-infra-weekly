@@ -187,5 +187,30 @@
     "topic": "Developer Enablement",
     "bold_reframe": "Your developer platform isn't failing because it lacks features — it's failing because engineers have to go to it. The best platform is the one nobody visits.",
     "research_window": "2025-12-01 to 2026-03-15"
-  }
+  },{
+  "week": 10,
+  "date": "2026-03-09",
+  "filename": "articles/the-routing-robin-hood.html",
+  "title": "The Routing Robin Hood",
+  "topic": "AI Platform Architecture",
+  "bold_reframe": "Your AI model router is not a load balancer; it is a high-frequency trading engine, and treating it like one is the only way to survive inference costs.",
+  "research_window": "2025-12-15 to 2026-03-15"
+},
+  {
+  "week": 09,
+  "date": "2026-02-23",
+  "filename": "articles/the-automation-trap.html",
+  "title": "The Automation Trap",
+  "topic": "Kubernetes & DevOps",
+  "bold_reframe": "GitOps doesn't prevent outages; it automates them. Reconciliation loops are not safety nets, but highly efficient outage engines requiring strict rate-limiting.",
+  "research_window": "2025-11-17 to 2026-03-01"
+},{
+  "week": 8,
+  "date": "2026-02-16",
+  "filename": "articles/blind-spots-bright-logs.html",
+  "title": "Blind Spots, Bright Logs",
+  "topic": "Security & Governance",
+  "bold_reframe": "Your AI agent's audit trail is a lie — not because the logs are wrong, but because they attribute every action to the human user, even when the true author was a prompt injected by a third party.",
+  "research_window": "2024-06-01 to 2026-02-22"
+}
 ]
