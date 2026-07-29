@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automating the Wrong Thing | Agentic Infra Weekly</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card-bg: #141414;
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #ff4757;
+    --accent-2: #2ed573;
+    --max: 660px;
+    --topbar-h: 60px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.7;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+
+  /* Progress & Topbar */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    z-index: 1000;
+  }
+  #topbar {
+    position: sticky; top: 0; height: var(--topbar-h);
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid #333;
+    display: flex; align-items: center; padding: 0 24px;
+    z-index: 999;
+  }
+  .topbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto; }
+  .breadcrumb { font-size: 0.9rem; color: var(--muted); }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .meta-info { font-size: 0.85rem; color: var(--muted); display: flex; gap: 15px; align-items: center; }
+  .hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+  /* Layout */
+  .wrap {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: calc(var(--max) + 260px);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  #rail {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+    padding: 24px 0;
+  }
+  #rail ol { list-style: none; counter-reset: chapter; }
+  #rail li { counter-increment: chapter; margin-bottom: 12px; font-size: 0.9rem; }
+  #rail li::before { content: counter(chapter) ". "; color: var(--accent); font-weight: bold; }
+  #rail a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  #rail a:hover { color: var(--text); }
+
+  main {
+    max-width: var(--max);
+    padding: 24px 0;
+    margin: 0 auto;
+  }
+  
+  /* Typography & Components */
+  h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.2; margin-bottom: 1rem; }
+  h2 { font-size: 1.8rem; margin: 2.5rem 0 1rem 0; color: var(--text); }
+  p { margin-bottom: 1.2rem; color: #ddd; }
+  .chapter { scroll-margin-top: 100px; padding-top: 2rem; border-top: 1px solid #222; }
+  .chapter:first-of-type { border-top: none; padding-top: 0; }
+
+  blockquote {
+    border-left: 4px solid var(--accent);
+    margin: 2rem 0;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .spectrum {
+    margin: 2rem 0;
+    height: 40px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #000;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    perspective: 1000px;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+  .card-flip { 
+    transition: transform 0.6s; 
+    transform-style: preserve-3d; 
+    position: relative; 
+    width: 100%; 
+    height: 100%; 
+  }
+  .card.flipped .card-flip { transform: rotateY(180deg); }
+  .card-front, .card-back {
+    backface-visibility: hidden;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  }
+  .card-back { transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; text-align: center; }
+
+  svg { max-width: 100%; height: auto; margin: 2rem 0; }
+  .svg-node { transition: fill 0.3s; cursor: pointer; }
+  .svg-node:hover { fill: var(--accent); }
+  .svg-group:hover .svg-label { opacity: 1; }
+  .svg-label { opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+
+  .share-block { display: flex; gap: 10px; margin: 2rem 0; }
+  .btn { padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.8; }
+  .btn-x { background: #000; color: #fff; border: 1px solid #fff; }
+  .btn-in { background: #0077b5; color: #fff; }
+
+  #scrim { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 998; }
+  
+  footer {
+    margin-top: 3rem;
+    padding: 2rem 0;
+    border-top: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .citation { font-size: 0.85rem; color: var(--muted); border-left: 2px solid #444; padding-left: 10px; margin-bottom: 0.5rem; }
+  .to-top { color: var(--accent-2); cursor: pointer; align-self: flex-start; text-decoration: none; }
+
+  @media (max-width: 880px) {
+    .wrap { grid-template-columns: 1fr; }
+    #rail {
+      position: fixed;
+      top: var(--topbar-h);
+      left: 0;
+      width: 250px;
+      height: calc(100% - var(--topbar-h));
+      background: #111;
+      padding: 30px;
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+      z-index: 999;
+    }
+    #rail.open { transform: translateX(0); }
+    #scrim.open { display: block; }
+    .hamburger { display: block; }
+    .breadcrumb { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="scrim" onclick="toggleRail()"></div>
+
+<header id="topbar">
+  <div class="topbar-inner">
+    <div style="display:flex; align-items:center; gap:15px;">
+      <button class="hamburger" onclick="toggleRail()">☰</button>
+      <nav class="breadcrumb">
+        <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a> / <span>Automating the Wrong Thing</span>
+      </nav>
+    </div>
+    <div class="meta-info">
+      <span id="reading-time">~5 min read</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside id="rail">
+    <ol>
+      <li><a href="#s1">Tail Wags The Dog</a></li>
+      <li><a href="#s2">Automating The Wrong Thing</a></li>
+      <li><a href="#s3">Blind Spots In Loops</a></li>
+      <li><a href="#s4">Pulling The Reins Back</a></li>
+      <li><a href="#s5">Don't Trust, Verify</a></li>
+      <li><a href="#s6">Recall Practice</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <article>
+      <h1>Automating the Wrong Thing</h1>
+      
+      <div class="spectrum">
+        <span>Manual Outage</span>
+        <span>Automated Outage (GitOps)</span>
+      </div>
+
+      <section class="chapter" id="s1">
+        <h2>Tail Wags The Dog</h2>
+        <p>On a quiet Tuesday afternoon, an engineer at DoorDash merged a standard configuration pull request. The CI pipeline ran green. ArgoCD synced the change instantly to the production cluster. Within minutes, every single API request returned a 404 error. The platform was completely down. The GitOps dashboard proudly displayed a perfectly synchronized state. The system was working exactly as designed, and it was destroying the business.</p>
+        <p>We adopted GitOps to make deployments safer. The promise was simple: declarative infrastructure, version-controlled state, and automated reconciliation. But we bought a lie.</p>
+      </section>
+
+      <section class="chapter" id="s2">
+        <h2>Automating The Wrong Thing</h2>
+        <p>GitOps doesn't prevent outages; it just automates how fast you can break everything.</p>
+        <p>Engineers treat a green ArgoCD or Flux dashboard as proof of system health. It is not. It is only proof that the cluster state matches the Git repository. When DoorDash pushed that flawed Envoy configuration in May 2023, their AWS EKS cluster obediently applied it via ArgoCD. The reconciliation loop did its job. But because the pipeline lacked progressive delivery constraints, the configuration rolled out globally in seconds. The system trusted the manifest, skipped the canary, and took down the entire platform.</p>
+        
+        <svg width="100%" height="120" viewBox="0 0 600 120">
+          <g class="svg-group">
+            <rect class="svg-node" x="10" y="40" width="100" height="40" rx="5" fill="#333" />
+            <text x="60" y="65" text-anchor="middle" fill="#fff" font-size="12">Git Commit</text>
+            <text class="svg-label" x="60" y="100" text-anchor="middle" fill="#fff" font-size="10">Valid Syntax</text>
+          </g>
+          <path d="M115 60 L165 60" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+          <g class="svg-group">
+            <rect class="svg-node" x="170" y="40" width="100" height="40" rx="5" fill="#333" />
+            <text x="220" y="65" text-anchor="middle" fill="#fff" font-size="12">ArgoCD Sync</text>
+            <text class="svg-label" x="220" y="100" text-anchor="middle" fill="#ff4757" font-size="10">No Canary Check!</text>
+          </g>
+          <path d="M275 60 L325 60" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+          <g class="svg-group">
+            <rect class="svg-node" x="330" y="40" width="100" height="40" rx="5" fill="#333" />
+            <text x="380" y="65" text-anchor="middle" fill="#fff" font-size="12">AWS EKS</text>
+            <text class="svg-label" x="380" y="100" text-anchor="middle" fill="#fff" font-size="10">Applies State</text>
+          </g>
+          <path d="M435 60 L485 60" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+          <g class="svg-group">
+            <rect class="svg-node" x="490" y="40" width="100" height="40" rx="5" fill="#333" />
+            <text x="540" y="65" text-anchor="middle" fill="#fff" font-size="12">Envoy</text>
+            <text class="svg-label" x="540" y="100" text-anchor="middle" fill="#ff4757" font-size="10">Global 404 Outage</text>
+          </g>
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#666" />
+            </marker>
+          </defs>
+        </svg>
+
+        <p>The hidden danger in Kubernetes DevOps is that we have optimized the deployment mechanism without securing the deployment payload. We assume that because the delivery is automated, the content is safe.</p>
+      </section>
+
+      <section class="chapter" id="s3">
+        <h2>Blind Spots In Loops</h2>
+        <blockquote>A green ArgoCD dashboard is not a green system; it's just a synchronized failure.</blockquote>
+        <p>Consider GitLab’s 2023 degradation incident. Background processing jobs began consuming massive amounts of memory. The root cause? The default Helm chart used to deploy Sidekiq on their Google Kubernetes Engine cluster lacked hard memory limits. When traffic spiked, pod memory exploded. Without boundaries, the Kubernetes scheduler thrashed, evicting pods and causing cascading failures across GitLab.com.</p>
+        <p>The Helm chart was syntactically valid. The GitOps pipeline applied it successfully. Yet, the operational reliability of the platform was fundamentally compromised by a missing default. We are connecting Git repositories to clusters, but disconnecting engineering teams from the actual runtime constraints of their software.</p>
+      </section>
+
+      <section class="chapter" id="s4">
+        <h2>Pulling The Reins Back</h2>
+        <p>The counterargument is obvious: "GitOps combined with CI tests catches these issues." But CI tests check schema and syntax, not runtime behavior or network topology. A unit test won't flag an Envoy route that drops 100% of traffic, and a lint check won't fix a Sidekiq pod starving a node of memory.</p>
+        <p>To build reliable platforms, we must stop treating deployment automation as a substitute for operational rigor. You cannot engineer your way out of bad defaults with faster loops.</p>
+        <p>Engineers must regain narrative agency over their infrastructure. First, decouple configuration changes from application deployments in your GitOps pipelines, enforcing strict canary rollouts for edge configurations. Second, audit every default Helm chart for missing resource limits and probes before it ever touches a production node. Third, implement blameless postmortems that specifically investigate why the GitOps pipeline allowed a bad state to pass, rather than just fixing the bad state itself.</p>
+      </section>
+
+      <section class="chapter" id="s5">
+        <h2>Don't Trust, Verify</h2>
+        <p>Operational reliability in Kubernetes doesn't come from faster synchronization. It comes from the friction we deliberately inject into the pipeline to protect us from ourselves.</p>
+        <p>Pick one critical service in your cluster today. Go to its ArgoCD Application manifest and add a strict, automated canary rollout stage that requires Datadog error rates to remain below threshold before progressing. Stop trusting your Git state, and start verifying your runtime.</p>
+        
+        <div class="share-block">
+          <a href="#" class="btn btn-x" onclick="shareX(event)">Share on X</a>
+          <a href="#" class="btn btn-in" onclick="shareIn(event)">Share on LinkedIn</a>
+        </div>
+      </section>
+
+      <section class="chapter" id="s6">
+        <h2>Recall Practice</h2>
+        <p>Tap a card to reveal the answer.</p>
+        
+        <div class="card" onclick="this.classList.toggle('flipped')">
+          <div class="card-flip">
+            <div class="card-front">
+              <p>What was the missing systems-thinking methodology in the DoorDash outage?</p>
+            </div>
+            <div class="card-back">
+              <p>Progressive Delivery / Canary Rollouts.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" onclick="this.classList.toggle('flipped')">
+          <div class="card-flip">
+            <div class="card-front">
+              <p>Why did GitLab's Sidekiq pods cause a cluster-wide cascading failure?</p>
+            </div>
+            <div class="card-back">
+              <p>The Helm chart lacked hard memory limits, causing node pressure and scheduler thrashing.</p>
+            </div>
+          </div>
+        </div>
+
+        <svg width="100%" height="200" viewBox="0 0 400 200">
+          <line x1="200" y1="100" x2="100" y2="40" stroke="#444" stroke-width="2" />
+          <line x1="200" y1="100" x2="300" y2="40" stroke="#444" stroke-width="2" />
+          <line x1="200" y1="100" x2="100" y2="160" stroke="#444" stroke-width="2" />
+          <line x1="200" y1="100" x2="300" y2="160" stroke="#444" stroke-width="2" />
+          
+          <circle cx="200" cy="100" r="30" fill="#141414" stroke="#ff4757" stroke-width="2" />
+          <text x="200" y="95" text-anchor="middle" fill="#fff" font-size="10">GitOps</text>
+          <text x="200" y="108" text-anchor="middle" fill="#fff" font-size="10">Pipeline</text>
+
+          <circle cx="100" cy="40" r="20" fill="#141414" stroke="#2ed573" stroke-width="2" />
+          <text x="100" y="44" text-anchor="middle" fill="#fff" font-size="10">Canary</text>
+
+          <circle cx="300" cy="40" r="20" fill="#141414" stroke="#2ed573" stroke-width="2" />
+          <text x="300" y="44" text-anchor="middle" fill="#fff" font-size="10">Limits</text>
+
+          <circle cx="100" cy="160" r="20" fill="#141414" stroke="#2ed573" stroke-width="2" />
+          <text x="100" y="164" text-anchor="middle" fill="#fff" font-size="10">Probes</text>
+
+          <circle cx="300" cy="160" r="20" fill="#141414" stroke="#2ed573" stroke-width="2" />
+          <text x="300" y="164" text-anchor="middle" fill="#fff" font-size="10">Friction</text>
+        </svg>
+      </section>
+
+      <footer>
+        <div class="citation">Source: DoorDash Engineering Postmortem (May 2023). Detailed AWS EKS, Envoy, and ArgoCD configuration failure.</div>
+        <div class="citation">Source: GitLab Engineering Blog (2023). Detailed GKE, Helm, and Sidekiq memory exhaustion cascading failure.</div>
+        <a href="#" class="to-top" onclick="scrollToTop(); return false;">↑ Back to top</a>
+        <a href="https://iggym.github.io/agentic-infra-weekly/" style="color: var(--accent); text-decoration: none;">← Home</a>
+      </footer>
+    </article>
+  </main>
+</div>
+
+<script>
+  // Progress Bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrollPercent = (scrollTop / scrollHeight) * 100;
+    progress.style.width = scrollPercent + "%";
+  });
+
+  // Mobile Nav
+  function toggleRail() {
+    document.getElementById('rail').classList.toggle('open');
+    document.getElementById('scrim').classList.toggle('open');
+  }
+
+  // Share Logic
+  const shareText = "GitOps doesn't prevent outages; it just automates how fast you can break everything.";
+  function shareX(e) {
+    e.preventDefault();
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${window.location.href}`, '_blank');
+  }
+  function shareIn(e) {
+    e.preventDefault();
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`, '_blank');
+  }
+
+  // Scroll to top
+  function scrollToTop() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  }
+</script>
+</body>
+</html>
