@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Automation Trap: Why GitOps Eats Error Budgets</title>
+<style>
+  :root {
+    --max: 680px;
+    --bg: #06080F;
+    --bg-elevated: #0D1117;
+    --fg: #E6EDF3;
+    --muted: #7D8590;
+    --accent: #58A6FF;
+    --danger: #FF4D4D;
+    --success: #3FB950;
+    --glass: rgba(13, 17, 23, 0.75);
+    --border: rgba(255, 255, 255, 0.1);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(88, 166, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(255, 77, 77, 0.06) 0%, transparent 40%);
+  }
+
+  /* --- Progress Bar --- */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--danger));
+    z-index: 1000;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+  }
+
+  /* --- Topbar --- */
+  #topbar {
+    position: sticky;
+    top: 0;
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 15px; }
+  .home-link { 
+    color: var(--fg); 
+    text-decoration: none; 
+    font-weight: 700; 
+    letter-spacing: -0.5px;
+    transition: color 0.2s;
+  }
+  .home-link:hover { color: var(--accent); }
+  .breadcrumb { font-size: 0.85rem; color: var(--muted); font-family: monospace; }
+  .read-time { 
+    color: var(--muted); 
+    font-size: 0.85rem; 
+    background: rgba(255,255,255,0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* --- Layout Grid --- */
+  .wrap {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: calc(var(--max) + 260px);
+    margin: 0 auto;
+    gap: 40px;
+    padding: 0 24px;
+  }
+
+  /* --- Sidebar Navigation --- */
+  #rail {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+    padding-top: 40px;
+  }
+  #rail ol { list-style: none; counter-reset: rail-counter; }
+  #rail li { 
+    margin-bottom: 14px; 
+    counter-increment: rail-counter;
+    font-size: 0.9rem;
+    position: relative;
+    padding-left: 28px;
+  }
+  #rail li::before {
+    content: counter(rail-counter, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: monospace;
+    font-weight: bold;
+    opacity: 0.7;
+  }
+  #rail a { 
+    color: var(--muted); 
+    text-decoration: none; 
+    transition: all 0.2s; 
+    display: block;
+  }
+  #rail a:hover { color: var(--fg); transform: translateX(3px); }
+
+  /* --- Main Content --- */
+  main {
+    max-width: var(--max);
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+
+  article { animation: fadeIn 0.8s ease-out; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1 { 
+    font-size: clamp(2.2rem, 5.5vw, 3.4rem); 
+    margin-bottom: 1.5rem; 
+    line-height: 1.1; 
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #A0A0A0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  h2 { 
+    font-size: 1.8rem; 
+    margin: 3rem 0 1.2rem; 
+    letter-spacing: -0.5px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+
+  p { margin-bottom: 1.4rem; color: #D1D5DB; }
+
+  /* --- Visual Components --- */
+  .chapter { 
+    scroll-margin-top: 100px; 
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  .chapter.revealed { opacity: 1; transform: translateY(0); }
+
+  blockquote {
+    border-left: 3px solid var(--danger);
+    padding: 20px 24px;
+    margin: 2rem 0;
+    background: rgba(255, 77, 77, 0.05);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--fg);
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  /* --- Interactive SVG Diagram: Reconciliation Storm --- */
+  .diagram-container {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 2.5rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .diagram-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .diagram-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-mono {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-mono:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
+  .btn-mono.active { background: var(--danger); border-color: var(--danger); color: white; }
+  
+  .svg-stage { 
+    width: 100%; 
+    height: 220px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+  }
+  .node-box {
+    fill: var(--bg);
+    stroke: var(--muted);
+    stroke-width: 2;
+    transition: all 0.3s;
+  }
+  .node-text {
+    fill: var(--fg);
+    font-family: monospace;
+    font-size: 12px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .flow-path {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-dasharray: 6 6;
+    transition: stroke 0.3s;
+  }
+  
+  /* Animation Classes */
+  .storm-active .flow-path { 
+    stroke: var(--danger); 
+    animation: dashFlow 0.2s linear infinite;
+  }
+  .storm-active .api-node { 
+    stroke: var(--danger); 
+    animation: shake 0.1s linear infinite; 
+  }
+  .storm-active .argo-node { stroke: var(--danger); }
+  
+  @keyframes dashFlow {
+    to { stroke-dashoffset: -12; }
+  }
+  @keyframes shake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(2px, 0); }
+    50% { transform: translate(-2px, 0); }
+    75% { transform: translate(0, 2px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* --- Error Budget Meter --- */
+  .budget-meter {
+    margin: 2.5rem 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .meter-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: monospace;
+  }
+  .meter-track {
+    height: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .meter-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--success) 0%, var(--accent) 50%, var(--danger) 100%);
+    border-radius: 6px;
+    transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.4);
+  }
+
+  /* --- 3D Flip Card --- */
+  .flip-card {
+    background: transparent;
+    width: 100%;
+    height: 160px;
+    perspective: 1000px;
+    margin: 2rem 0;
+    cursor: pointer;
+  }
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.active .flip-card-inner { transform: rotateY(180deg); }
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .flip-card-front {
+    background: linear-gradient(135deg, #1A1F2E 0%, #0D1117 100%);
+    color: var(--fg);
+  }
+  .flip-card-back {
+    background: linear-gradient(135deg, #0D1117 0%, #1A2333 100%);
+    color: var(--accent);
+    transform: rotateY(180deg);
+  }
+  .flip-card h4 { font-size: 1.1rem; margin-bottom: 8px; }
+  .flip-card p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+  .flip-card-back p { color: #D1D5DB; }
+
+  /* --- Social Share --- */
+  .share-block { 
+    display: flex; 
+    gap: 12px; 
+    margin: 3rem 0; 
+  }
+  .share-btn {
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.05);
+    color: var(--fg);
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .share-btn:hover { 
+    background: var(--accent); 
+    color: var(--bg); 
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+  }
+
+  /* --- Footer --- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 30px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* --- Mobile Elements --- */
+  .hamburger { 
+    display: none; 
+    background: none; 
+    border: none; 
+    color: var(--fg); 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+    padding: 0;
+  }
+  #scrim { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); 
+    z-index: 90; 
+    backdrop-filter: blur(2px);
+  }
+
+  @media (max-width: 880px) {
+    .wrap { grid-template-columns: 1fr; }
+    .hamburger { display: block; }
+    #rail {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 80%; height: 100%;
+      background: var(--bg-elevated);
+      padding: 80px 24px 24px;
+      z-index: 95;
+      border-right: 1px solid var(--border);
+    }
+    #rail.active { display: block; }
+    #scrim.active { display: block; }
+    .read-time { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+    html { scroll-behavior: auto; }
+    .chapter { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="scrim"></div>
+
+<header id="topbar">
+  <div class="topbar-left">
+    <button class="hamburger" id="hamburger">☰</button>
+    <a href="https://iggym.github.io/agentic-infra-weekly/" class="home-link">Agentic Infra Weekly</a>
+    <span class="breadcrumb">/ W09 / The Automation Trap</span>
+  </div>
+  <div class="topbar-right">
+    <span class="read-time">5 min read</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav id="rail">
+    <ol>
+      <li><a href="#s1">The Engine of Outages</a></li>
+      <li><a href="#s2">Loops Burn Budgets</a></li>
+      <li><a href="#s3">Speed Bends Both Ways</a></li>
+      <li><a href="#s4">Credibility And Nuance</a></li>
+      <li><a href="#s5">Throttle The Machine</a></li>
+      <li><a href="#s6">Cap The Damage</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <article>
+      <h1>The Automation Trap</h1>
+      
+      <section class="chapter" id="s1">
+        <h2>The Engine of Outages</h2>
+        <p>The dashboard glowed an angry, solid red. At DoorDash, engineers watched as their Kubernetes API servers throttled into oblivion, taking down critical microservices across their massive delivery platform. The enemy wasn't a traffic spike from the Super Bowl or a rogue infrastructure engineer running a destructive script. The culprit was their own automation. Specifically, the relentless, unthrottled reconciliation loops of their GitOps deployment systems were hammering the control plane, generating an overwhelming tide of API requests that pushed the cluster into cardiac arrest. The machine designed to keep the platform stable had become the instrument of its destruction.</p>
+      </section>
+
+      <section class="chapter" id="s2">
+        <h2>Loops Burn Budgets</h2>
+        <p>This brings us to a harsh truth about modern platform engineering.</p>
+        <p>GitOps doesn't prevent outages; it automates them. For years, we’ve championed declarative infrastructure and continuous reconciliation as the pinnacle of operational reliability. We treat the reconciliation loop as a safety net. But the safety net is on fire. When a GitOps tool like ArgoCD or Flux detects a configuration drift, it acts with mechanical, unyielding aggression to correct it. If the desired state is unattainable, or if a custom controller enters a hot-loop—exactly as Shopify experienced when a misconfigured custom resource triggered a reconciliation storm that DDoS-ed their own internal control planes—the automation becomes a highly efficient outage engine.</p>
+        
+        <div class="budget-meter">
+          <div class="meter-label">
+            <span>SRE ERROR BUDGET</span>
+            <span id="budgetStatus">100% REMAINING</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="budgetFill"></div>
+          </div>
+        </div>
+
+        <p>The bold reframe is this: reconciliation loops are not safety nets. They are autonomous agents that require strict, defensive rate-limiting. We have built self-driving cars without brakes.</p>
+      </section>
+
+      <section class="chapter" id="s3">
+        <h2>Speed Bends Both Ways</h2>
+        <p>We assume that faster delivery and faster remediation inherently improve reliability. If a pod crashes, the operator immediately spins up a new one. If a config drifts, GitOps re-applies the manifest. But this masks a hidden connection between automation speed and blast radius.</p>
+        <blockquote>Your speed of recovery is now bound by your speed of destruction.</blockquote>
+        
+        <div class="diagram-container">
+          <div class="diagram-title">
+            <span>Reconciliation Storm Simulator</span>
+            <div class="diagram-controls">
+              <button class="btn-mono" id="toggleStorm">TRIGGER BAD CONFIG</button>
+            </div>
+          </div>
+          <div class="svg-stage" id="svgStage">
+            <svg width="100%" height="200" viewBox="0 0 500 200">
+              <!-- Connections -->
+              <path id="path1" class="flow-path" d="M80,100 L180,100" marker-end="url(#arrow)"></path>
+              <path id="path2" class="flow-path" d="M280,100 L380,100" marker-end="url(#arrow)"></path>
+              <path id="path3" class="flow-path" d="M380,110 C350,180 220,180 190,110" marker-end="url(#arrow-red)"></path>
+              
+              <!-- Nodes -->
+              <g>
+                <rect class="node-box git-node" x="20" y="75" width="80" height="50" rx="8"></rect>
+                <text class="node-text" x="60" y="100">Git Repo</text>
+              </g>
+              <g>
+                <rect class="node-box argo-node" x="200" y="75" width="80" height="50" rx="8"></rect>
+                <text class="node-text" x="240" y="100">ArgoCD</text>
+              </g>
+              <g>
+                <rect class="node-box api-node" x="380" y="75" width="80" height="50" rx="8"></rect>
+                <text class="node-text" x="420" y="100">K8s API</text>
+              </g>
+              
+              <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                  <path d="M0,0 L0,6 L9,3 z" fill="#7D8590"></path>
+                </marker>
+                <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                  <path d="M0,0 L0,6 L9,3 z" fill="#FF4D4D"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+
+        <p>When Shopify’s custom controller began rapidly reconciling, the sheer volume of API calls saturated the Kubernetes control plane. The system’s natural dampeners—cache delays, API priority, scheduling queues—were bypassed by a flood of automated intent. By treating their own internal control planes as untrusted, rate-limited public APIs and implementing exponential backoffs, Shopify applied defense-in-depth to their automation. They recognized that an automated system operating without backpressure is just an optimized weapon.</p>
+      </section>
+
+      <section class="chapter" id="s4">
+        <h2>Credibility And Nuance</h2>
+        <p>The counterargument is obvious: GitOps ensures desired state, so it is inherently safer than manual kubectl apply commands. It prevents configuration drift and standardizes deployments. This is true, but it misses the operational reality. Desired state is a liability when the desired state is wrong.</p>
+        <p>When an engineer pushes a bad manifest, the GitOps controller doesn’t pause to ask if the manifest makes sense. It enforces it. It re-applies it. It fights the Kubernetes scheduler to the death. As documented by DoorDash, the continuous deployment systems themselves became the primary consumers of cluster resources, degrading overall system reliability and forcing the team to implement API priority and fairness limits just to protect the control plane from their own tooling. The SRE error budget wasn't being burned by user traffic; it was being burned by ArgoCD aggressively trying to reconcile thousands of resources simultaneously.</p>
+        <p>The systems-thinking methodology at work here is a breakdown of the Four Golden Signals. By hyper-focusing on deployment frequency (a DORA metric), teams ignore saturation. They fail to account for the fact that every reconciliation loop is an API call, and every API call has a cost.</p>
+
+        <div class="flip-card" id="recallCard1">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <h4>Retrieval Practice</h4>
+              <p>What methodology breaks down when teams ignore saturation in favor of deployment frequency? (Click to reveal)</p>
+            </div>
+            <div class="flip-card-back">
+              <h4>Answer</h4>
+              <p>The Four Golden Signals. By ignoring saturation, teams allow automated loops to consume cluster resources, burning the SRE error budget without triggering traditional user-traffic alerts.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" id="s5">
+        <h2>Throttle The Machine</h2>
+        <p>If GitOps is an outage engine waiting to redline, you must install a governor. You have the agency to fix this.</p>
+        <p>First, implement API Priority and Fairness on your Kubernetes control planes. Stop treating your automation tools as trusted, well-behaved tenants. Treat them as potentially hostile actors that must be rate-limited. Give your GitOps controller's service account a low priority. If the control plane is under stress, the automation should be the first thing throttled, not the last.</p>
+        <p>Second, audit your reconciliation intervals. Does ArgoCD really need to poll Git every 30 seconds? Does your custom controller need to reconcile every 15 seconds? Extend those timers. Introduce jitter. The DoorDash incident proved that scaling back aggressive polling is a higher-leverage reliability action than scaling up the control plane.</p>
+        <p>Finally, integrate pre-flight validation using tools like GitOps Guardian. Before a manifest hits the cluster and triggers a destructive loop, scan the pull request for high-risk configurations. Use AI-driven linters to flag missing SyncOptions or overly aggressive rolling update strategies.</p>
+      </section>
+
+      <section class="chapter" id="s6">
+        <h2>Cap The Damage</h2>
+        <p>Automation without boundaries is just a faster way to fail. Your GitOps tools are not infallible guardians; they are blunt instruments applying brute force to complex systems.</p>
+        <p>Within the next 24 hours, open your ArgoCD or Flux configuration and double the syncTimeout and requeue values. Force your automation to take a breath. Give your error budget a chance to survive.</p>
+      </section>
+
+      <div class="share-block">
+        <a href="https://twitter.com/intent/tweet?text=GitOps%20doesn%27t%20prevent%20outages%3B%20it%20automates%20them.%20Reconciliation%20loops%20aren%27t%20safety%20nets%E2%80%94they%27re%20highly%20efficient%20outage%20engines%20requiring%20strict%20rate-limiting.%20Stop%20letting%20your%20automation%20burn%20your%20SRE%20error%20budgets.%20Throttle%20the%20machine.&url=" target="_blank" class="share-btn" id="twitter-share">Share on X</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" class="share-btn" id="linkedin-share">Share on LinkedIn</a>
+      </div>
+
+      <footer>
+        <div>
+          <strong>Sources:</strong> DoorDash Engineering, Shopify Engineering<br>
+          <a href="#" id="scroll-top">Back to top</a> | <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+        </div>
+        <div>© 2026 Agentic Infra Weekly</div>
+      </footer>
+    </article>
+  </main>
+</div>
+
+<script>
+  // --- Reading Progress Bar ---
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrollPercent = (scrollTop / scrollHeight) * 100;
+    progress.style.width = scrollPercent + '%';
+  });
+
+  // --- Mobile Nav ---
+  const hamburger = document.getElementById('hamburger');
+  const rail = document.getElementById('rail');
+  const scrim = document.getElementById('scrim');
+  
+  hamburger.addEventListener('click', () => {
+    rail.classList.toggle('active');
+    scrim.classList.toggle('active');
+  });
+  
+  scrim.addEventListener('click', () => {
+    rail.classList.remove('active');
+    scrim.classList.remove('active');
+  });
+
+  // --- Social Share URL injection ---
+  const currentUrl = window.location.href;
+  document.getElementById('twitter-share').href += encodeURIComponent(currentUrl);
+  document.getElementById('linkedin-share').href += encodeURIComponent(currentUrl);
+
+  // --- Smooth Scroll to top ---
+  document.getElementById('scroll-top').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  });
+
+  // --- Intersection Observer for Scroll Reveal & Budget Meter ---
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        
+        // Trigger budget meter animation
+        if (entry.target.id === 's2') {
+          const budgetFill = document.getElementById('budgetFill');
+          const budgetStatus = document.getElementById('budgetStatus');
+          setTimeout(() => {
+            budgetFill.style.width = '85%';
+            budgetStatus.textContent = '15% REMAINING (CRITICAL)';
+            budgetStatus.style.color = 'var(--danger)';
+          }, 300);
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.chapter').forEach(el => observer.observe(el));
+
+  // --- Reconciliation Storm Simulator ---
+  const toggleBtn = document.getElementById('toggleStorm');
+  const svgStage = document.getElementById('svgStage');
+  let stormActive = false;
+
+  toggleBtn.addEventListener('click', () => {
+    stormActive = !stormActive;
+    svgStage.classList.toggle('storm-active', stormActive);
+    toggleBtn.classList.toggle('active', stormActive);
+    toggleBtn.textContent = stormActive ? 'STOP STORM' : 'TRIGGER BAD CONFIG';
+  });
+
+  // --- Flip Card Interaction ---
+  const flipCard = document.getElementById('recallCard1');
+  flipCard.addEventListener('click', () => {
+    flipCard.classList.toggle('active');
+  });
+
+</script>
+
+</body>
+</html>
