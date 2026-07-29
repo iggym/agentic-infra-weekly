@@ -9,51 +9,112 @@
     "research_window": "2025-03-10 to 2025-03-16"
   },
   {
-  "week": "28",
-  "date": "2026-07-06",
-  "filename": "articles/2026-07-06-the-drift-you-cant-see.html",
-  "title": "The Drift You Can't See",
-  "topic": "AI Systems Engineering",
-  "bold_reframe": "Your AI observability stack is watching the infrastructure, not the intelligence.",
-  "research_window": "2026-07-06 to 2026-07-12"
-},
+    "week": 30,
+    "date": "2026-07-20",
+    "filename": "articles/the-paved-path-paradox.html",
+    "title": "The Paved Path Paradox",
+    "topic": "Platform Standardization",
+    "bold_reframe": "Standardization doesn't eliminate risk; it concentrates it into a single, catastrophic blast radius. True platform reliability comes from controlled flexibility, not rigid uniformity.",
+    "research_window": "2026-05-04 to 2026-07-26"
+  },
   {
-  "week": 30,
-  "date": "2026-07-20",
-  "filename": "articles/the-paved-path-paradox.html",
-  "title": "The Paved Path Paradox",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Standardization doesn't eliminate risk; it concentrates it into a single, catastrophic blast radius. True platform reliability comes from controlled flexibility, not rigid uniformity.",
-  "research_window": "2026-05-04 to 2026-07-26"
-},
+    "week": 28,
+    "date": "2026-07-06",
+    "filename": "articles/2026-07-06-the-drift-you-cant-see.html",
+    "title": "The Drift You Can't See",
+    "topic": "AI Systems Engineering",
+    "bold_reframe": "Your AI observability stack is watching the infrastructure, not the intelligence.",
+    "research_window": "2026-07-06 to 2026-07-12"
+  },
   {
-  "week": 27,
-  "date": "2026-07-03",
-  "filename": "articles/crying-wolf-in-code.html",
-  "title": "Crying Wolf in Code",
-  "topic": "Observability",
-  "bold_reframe": "AI observability alerts on the wrong signal because we measure plumbing instead of water quality.",
-  "research_window": "2026-03-23 to 2026-03-29"
-},
+    "week": 27,
+    "date": "2026-07-03",
+    "filename": "articles/crying-wolf-in-code.html",
+    "title": "Crying Wolf in Code",
+    "topic": "Observability",
+    "bold_reframe": "AI observability alerts on the wrong signal because we measure plumbing instead of water quality.",
+    "research_window": "2026-03-23 to 2026-03-29"
+  },
   {
-  "week": 27,
-  "date": "2026-07-03",
-  "filename": "articles/mind-the-gap.html",
-  "title": "Mind the Gap",
-  "topic": "Observability",
-  "bold_reframe": "Direct — AI observability fails because we monitor the plumbing (HTTP 200s) instead of the water (semantic success).",
-  "research_window": "2026-05-04 to 2026-05-10"
-},
-
+    "week": 27,
+    "date": "2026-07-03",
+    "filename": "articles/mind-the-gap.html",
+    "title": "Mind the Gap",
+    "topic": "Observability",
+    "bold_reframe": "Direct — AI observability fails because we monitor the plumbing (HTTP 200s) instead of the water (semantic success).",
+    "research_window": "2026-05-04 to 2026-05-10"
+  },
   {
-  "week": 26,
-  "date": "2026-06-22",
-  "filename": "articles/guard-the-graph.html",
-  "title": "Guard the Graph",
-  "topic": "Security & Governance",
-  "bold_reframe": "Your AI agent security model is backwards — you're guarding the prompt when you should be guarding the tool graph. The blast radius isn't what you tell the agent, it's what the agent can reach.",
-  "research_window": "2026-02-23 to 2026-06-28"
-},
+    "week": 26,
+    "date": "2026-06-22",
+    "filename": "articles/guard-the-graph.html",
+    "title": "Guard the Graph",
+    "topic": "Security & Governance",
+    "bold_reframe": "Your AI agent security model is backwards — you're guarding the prompt when you should be guarding the tool graph. The blast radius isn't what you tell the agent, it's what the agent can reach.",
+    "research_window": "2026-02-23 to 2026-06-28"
+  },
+  {
+    "week": 23,
+    "date": "2026-06-01",
+    "filename": "articles/pave-dont-pick.html",
+    "title": "Pave, Don't Pick",
+    "topic": "Developer Enablement",
+    "bold_reframe": "Developer platforms that accelerate shipping don't give engineers more choices — they give them fewer decisions.",
+    "research_window": "2026-02-23 to 2026-06-07"
+  },
+  {
+    "week": 20,
+    "date": "2026-05-11",
+    "filename": "articles/wolves-at-the-door.html",
+    "title": "Security & Governance",
+    "bold_reframe": "We are building autonomous systems with user-level permissions but API-level oversight, effectively giving them keys to the kingdom and a blindfold.",
+    "research_window": "2026-02-23 to 2026-05-17"
+  },
+  {
+    "week": 19,
+    "date": "2026-05-04",
+    "filename": "articles/blind-spots.html",
+    "title": "Blind Spots",
+    "topic": "Observability",
+    "bold_reframe": "Stop monitoring your LLMs like web servers. Agents don't crash; they hallucinate, loop, and confidently fail. A 200 OK is useless if the model is confidently lying. It's time for behavioral observability.",
+    "research_window": "2026-03-16 to 2026-05-03"
+  },
+  {
+    "week": 18,
+    "date": "2026-05-04",
+    "filename": "articles/the-paved-path-illusion.html",
+    "title": "The Paved Path Illusion",
+    "topic": "Platform Standardization",
+    "bold_reframe": "Standardization isn't about building paved paths; it's about eradicating the off-ramps.",
+    "research_window": "2026-02-09 to 2026-05-03"
+  },
+  {
+    "week": 18,
+    "date": "2026-04-27",
+    "filename": "articles/paved-with-good-intentions.html",
+    "title": "Paved With Good Intentions",
+    "topic": "Platform Standardization",
+    "bold_reframe": "A paved path is a toll road. If you don't enforce the toll, you're just paving a dirt road in a swamp.",
+    "research_window": "2026-01-19 to 2026-04-26"
+  },
+  {
+    "week": 17,
+    "date": "2026-04-27",
+    "filename": "articles/paving-over-the-portal.html",
+    "title": "Paving Over the Portal",
+    "topic": "Developer Enablement",
+    "bold_reframe": "The developer portal is the new ticket queue — real enablement means engineers never visit your platform UI; the most productive platform teams build pavement that disappears into existing workflows.",
+    "research_window": "2026-01-26 to 2026-05-03"
+  },
+  {
+    "week": 16,
+    "date": "2026-04-13",
+    "filename": "articles/the-tail-wags-the-model.html",
+    "title": "The Tail Wags the Model",
+    "topic": "AI Platform Architecture",
+    "bold_reframe": "The model is the least important part of your AI architecture; the routing harness dictates whether you scale or collapse.",
+    "research_window": "2023-11-01 to 2024-03-31"
+  },
   {
     "week": 21,
     "date": "2024-05-22",
@@ -63,15 +124,7 @@
     "bold_reframe": "A syntactically valid response containing a semantic failure is a 500-level error for your business logic; observability must shift from infrastructure uptime to semantic integrity.",
     "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
   },
-    {
-  "week": 23,
-  "date": "2026-06-01",
-  "filename": "articles/pave-dont-pick.html",
-  "title": "Pave, Don't Pick",
-  "topic": "Developer Enablement",
-  "bold_reframe": "Developer platforms that accelerate shipping don't give engineers more choices — they give them fewer decisions",
-  "research_window": "2026-02-23 to 2026-06-07"
-},  {
+  {
     "week": 21,
     "date": "2024-05-21",
     "filename": "articles/automating-the-outage.html",
@@ -79,68 +132,5 @@
     "topic": "Kubernetes & DevOps",
     "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
     "research_window": "2024-03-25 to 2024-03-31"
-  },
-  {
-  "week": 20,
-  "date": "2026-05-11",
-  "filename": "articles/wolves-at-the-door.html",
-  "title": "Wolves at the Door",
-  "topic": "Security & Governance: agent-to-tool access, least privilege, audit trails for autonomous systems",
-  "bold_reframe": "We are building autonomous systems with user-level permissions but API-level oversight, effectively giving them keys to the kingdom and a blindfold.",
-  "research_window": "2026-02-23 to 2026-05-17"
-},
-  {
-  "week": 19,
-  "date": "2026-05-04",
-  "filename": "articles/blind-spots.html",
-  "title": "Blind Spots",
-  "topic": "Observability",
-  "bold_reframe": "Stop monitoring your LLMs like web servers. Agents don't crash; they hallucinate, loop, and confidently fail. A 200 OK is useless if the model is confidently lying. It's time for behavioral observability.",
-  "research_window": "2026-03-16 to 2026-05-03"
-},
-  {
-  "week": 18,
-  "date": "2026-04-27",
-  "filename": "articles/paved-with-good-intentions.html",
-  "title": "Paved With Good Intentions",
-  "topic": "Platform Standardization",
-  "bold_reframe": "A paved path is a toll road. If you don't enforce the toll, you're just paving a dirt road in a swamp.",
-  "research_window": "2026-01-19 to 2026-04-26"
-},
-  {
-  "week": 18,
-  "date": "2026-05-04",
-  "filename": "articles/the-paved-path-illusion.html",
-  "title": "The Paved Path Illusion",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Standardization isn't about building paved paths; it's about eradicating the off-ramps.",
-  "research_window": "2026-02-09 to 2026-05-03"
-},
-  {
-  "week": 17,
-  "date": "2026-04-27",
-  "filename": "articles/paving-over-the-portal.html",
-  "title": "Paving Over the Portal",
-  "topic": "Developer Enablement",
-  "bold_reframe": "The developer portal is the new ticket queue — real enablement means engineers never visit your platform UI; the most productive platform teams build pavement that disappears into existing workflows.",
-  "research_window": "2026-01-26 to 2026-05-03"
-},
-  {
-  "week": 16,
-  "date": "2026-04-13",
-  "filename": "articles/the-tail-wags-the-model.html",
-  "title": "The Tail Wags the Model",
-  "topic": "AI Platform Architecture: model routing, cost/latency tradeoffs, 'harness over model'",
-  "bold_reframe": "The model is the least important part of your AI architecture; the routing harness dictates whether you scale or collapse.",
-  "research_window": "2023-11-01 to 2024-03-31"
-},
-  {
-    "week": 14,
-    "date": "2026-07-29",
-    "filename": "articles/mind-the-gap.html",
-    "title": "Mind the Gap",
-    "topic": "Observability",
-    "bold_reframe": "Direct — the gateway product exists because the routing layer is the real production bottleneck.",
-    "research_window": "2026-01-26 to 2026-07-26"
   }
 ]
