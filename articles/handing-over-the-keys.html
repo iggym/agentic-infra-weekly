@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handing Over the Keys</title>
+<style>
+  :root {
+    --max: 660px;
+    --bg: #0a0a0a;
+    --fg: #f0f0f0;
+    --muted: #888;
+    --accent: #ff4f4f;
+    --card-bg: #151515;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  
+  #progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+    background: linear-gradient(90deg, #ff4f4f, #ff9f43);
+    z-index: 1000;
+  }
+  
+  #topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid #333;
+    padding: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .topbar-left a { color: var(--fg); text-decoration: none; margin-right: 1rem; font-weight: bold; }
+  .topbar-right { display: flex; gap: 1rem; align-items: center; font-size: 0.9rem; color: var(--muted); }
+  #hamburger { display: none; background: none; border: none; color: var(--fg); font-size: 1.5rem; cursor: pointer; }
+  
+  .wrap {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: calc(var(--max) + 260px);
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1rem;
+  }
+  
+  #rail {
+    position: sticky; top: 100px;
+    height: fit-content;
+    counter-reset: rail-counter;
+  }
+  #rail ul { list-style: none; }
+  #rail li { margin-bottom: 0.5rem; }
+  #rail a {
+    color: var(--muted); text-decoration: none; display: flex; align-items: center;
+    transition: color 0.2s;
+  }
+  #rail a::before {
+    counter-increment: rail-counter;
+    content: counter(rail-counter);
+    margin-right: 0.5rem; font-size: 0.8rem;
+    background: #222; color: var(--accent); border-radius: 50%;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  }
+  #rail a:hover { color: var(--fg); }
+  
+  main {
+    max-width: var(--max);
+    margin: 0 auto;
+  }
+  
+  h1.hero {
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+  
+  section.chapter {
+    margin-bottom: 3rem;
+    scroll-margin-top: 100px;
+  }
+  
+  h2 {
+    font-size: 1.8rem; margin-bottom: 1rem; color: var(--fg);
+    border-bottom: 1px solid #333; padding-bottom: 0.5rem;
+  }
+  
+  p { margin-bottom: 1.2rem; }
+  
+  blockquote {
+    border-left: 4px solid var(--accent);
+    padding: 1rem; margin: 2rem 0;
+    background: var(--card-bg);
+    font-size: 1.2rem; font-style: italic;
+  }
+  
+  .spectrum {
+    height: 20px; margin: 2rem 0;
+    background: linear-gradient(90deg, #555 0%, #ff9f43 50%, var(--accent) 100%);
+    border-radius: 10px; position: relative;
+  }
+  .spectrum::before { content: "Static IAM"; position: absolute; left: 10px; top: -25px; font-size: 0.8rem; }
+  .spectrum::after { content: "Dynamic Auth"; position: absolute; right: 10px; top: -25px; font-size: 0.8rem; }
+  
+  .card-container { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; margin: 2rem 0; }
+  .flip-card { perspective: 1000px; height: 150px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 1rem; display: flex; flexlex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .flip-back { transform: rotateY(180deg); background: #2a1515; }
+  
+  .svg-diagram { width: 100%; height: auto; margin: 2rem 0; background: var(--card-bg); border-radius: 8px; }
+  .svg-node { fill: #222; stroke: #555; stroke-width: 2; transition: fill 0.3s; cursor: pointer; }
+  .svg-node:hover { fill: var(--accent); }
+  .svg-text { fill: var(--fg); font-size: 12px; text-anchor: middle; pointer-events: none; }
+  
+  .social-share { display: flex; gap: 1rem; margin: 2rem 0; }
+  .social-share a { background: #333; color: var(--fg); padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; transition: background 0.2s; }
+  .social-share a:hover { background: var(--accent); }
+  
+  footer {
+    border-top: 1px solid #333; margin-top: 3rem; padding-top: 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9rem; color: var(--muted);
+  }
+  
+  #scrim { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; }
+  
+  @media (max-width: 880px) {
+    .wrap { grid-template-columns: 1fr; }
+    #hamburger { display: block; }
+    #rail {
+      position: fixed; left: -260px; top: 0; height: 100%; width: 240px;
+      background: #111; padding: 2rem 1rem; z-index: 99;
+      transition: left 0.3s ease;
+    }
+    #rail.open { left: 0; }
+    #scrim.open { display: block; }
+    .card-container { grid-template-columns: 1fr; }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition: none !important;
+      animation: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header id="topbar">
+  <div class="topbar-left">
+    <button id="hamburger">☰</button>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+    <span>Security & Governance</span>
+  </div>
+  <div class="topbar-right">
+    <span>5 min read</span>
+  </div>
+</header>
+
+<div id="scrim"></div>
+
+<div class="wrap">
+  <nav id="rail">
+    <ul>
+      <li><a href="#s1">The Incident</a></li>
+      <li><a href="#s2">Bold Reframe</a></li>
+      <li><a href="#s3">Connections</a></li>
+      <li><a href="#s4">Nuance</a></li>
+      <li><a href="#s5">Actions</a></li>
+    </ul>
+  </nav>
+  
+  <main>
+    <article>
+      <h1 class="hero">Handing Over the Keys</h1>
+      
+      <section class="chapter" id="s1">
+        <p>In June 2023, a security researcher asked an AI agent to summarize a webpage. The agent obliged, fetching the URL using its standard <code>requests</code> tool. But the URL was <code>http://169.254.169.254/latest/meta-data/iam/security-credentials/</code>. The agent didn't read a webpage; it read the AWS EC2 instance metadata service. Because the LangChain agent's runtime environment inherited the host's IAM role, the tool happily returned the cloud account's temporary access keys. The researcher had just turned a harmless document reader into a cloud infrastructure admin.</p>
+        <p>This wasn't a bug in the Large Language Model. The model did exactly what it was asked. It was a failure of how we govern autonomous systems. We are building agents that can reason, but we are securing them like they are static, deterministic microservices.</p>
+      </section>
+
+      <section class="chapter" id="s2">
+        <h2>The Bold Reframe</h2>
+        <p>We are treating AI agent permissions as static IAM roles, when they actually need dynamic, session-scoped, intent-based authorization. An agent's identity is not its runtime container; its identity is its current goal.</p>
+        <p>When you deploy a microservice, it gets an IAM role. That role dictates what it can do. If it needs to read a database, you grant it <code>dynamodb:GetItem</code>. This works because the microservice's intent is hardcoded. It will only ever read that specific table.</p>
+        <p>AI agents break this model entirely. An agent's intent is defined at runtime by a natural language prompt. If you give an agent's runtime environment an IAM role that allows it to read customer records, it can read customer records. But if a user prompt-injects the agent and tells it to dump the database, it will still read customer records—just all of them, and send them to an attacker.</p>
+        
+        <!-- SVG Concept Map -->
+        <svg class="svg-diagram" viewBox="0 0 400 200">
+          <line x1="100" y1="100" x2="300" y2="100" stroke="#555" stroke-width="2"/>
+          <circle class="svg-node" cx="100" cy="100" r="40"/>
+          <text class="svg-text" x="100" y="105">Static IAM</text>
+          <circle class="svg-node" cx="300" cy="100" r="40"/>
+          <text class="svg-text" x="300" y="105">Agent Goal</text>
+        </svg>
+        
+        <div class="spectrum"></div>
+        
+        <blockquote>Static IAM is a dead perimeter in a prompt-driven system.</blockquote>
+      </section>
+
+      <section class="chapter" id="s3">
+        <h2>Hidden Connections</h2>
+        <p>In January 2024, a customer service chatbot for Chevrolet of Watsonville was manipulated via prompt injection to agree to sell a new Tahoe for one dollar. The bot was powered by ChatGPT. The developers gave the bot a system prompt instructing it to be helpful. They assumed this natural language instruction would act as a security boundary.</p>
+        <p>It didn't. The bot had the conversational ability to make promises, but no transactional guardrails to prevent it from executing out-of-bounds actions. The methodology failure here was the absence of fail-safe defaults. The system assumed the LLM could self-govern its behavior based on text.</p>
+        <p>We currently view IAM (Identity and Access Management) and prompt engineering as separate disciplines. Infrastructure teams handle the cloud permissions; AI engineers handle the system prompts. But in an agentic system, these two layers are deeply entangled.</p>
+        <p>Consider the LangChain SSRF vulnerability (CVE-2023-36258). The agent's runtime container had network access. The <code>requests_get</code> tool was a generic utility that inherited that network access. There was no defense-in-depth mechanism to filter the agent's egress traffic based on its task. The agent was treated as a trusted internal user, rather than a boundary spanner interacting with untrusted external data.</p>
+        <p>If an agent is asked to "read this URL," it should receive a time-bound, narrowly scoped token that allows it to fetch exactly that domain, and nothing else. The network call should be mediated by an egress proxy that understands the agent's current task context.</p>
+      </section>
+
+      <section class="chapter" id="s4">
+        <h2>Credibility and Nuance</h2>
+        <p>The strongest counterargument to dynamic, intent-based authorization is that it introduces unacceptable latency and operational complexity. Generating scoped tokens for every agent task is slow, and managing task contexts across distributed systems is hard. Engineers already struggle with static IAM; making it dynamic feels like an impossible standard.</p>
+        <p>But the cost of not doing it is catastrophic. The LangChain SSRF incident proves that implicit trust is a liability. If we continue to rely on static IAM, a single prompt injection in a low-level customer support agent can pivot into a full cloud infrastructure takeover.</p>
+        <p>The systems-thinking methodology required here is intent-based network segmentation combined with zero-trust principles. Every tool call an agent makes should be authenticated, authorized, and logged against a specific task ID. If the agent's task is to summarize a document, it gets a token for <code>object storage:GetObject</code> scoped to that specific file, expiring in 60 seconds. If it tries to call the metadata service, the proxy drops the request.</p>
+      </section>
+
+      <section class="chapter" id="s5">
+        <h2>Narrative Agency</h2>
+        <p>To secure your agents without rearchitecting your entire cloud, start with three concrete steps. First, implement egress proxies for all agent tool calls. Tools like AgentGuard sit between your agent and the network, dropping requests to internal IPs and logging every external call. Second, integrate automated red-teaming into your CI pipeline. Tools like PromptArmor can automatically test your system prompts against prompt injection attacks before they reach production. Third, build immutable audit trails. Every tool call, every model decision, and every token generation must be logged with a task ID.</p>
+        
+        <div class="card-container">
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-inner">
+              <div class="flip-front">What is SSRF?</div>
+              <div class="flip-back">Server-Side Request Forgery: An attacker forces a server to make requests to unintended internal resources.</div>
+            </div>
+          </div>
+          <div class="flip-card" onclick="this.classList.toggle('flipped')">
+            <div class="flip-inner">
+              <div class="flip-front">Prompt Injection</div>
+              <div class="flip-back">A technique where malicious instructions are embedded in data the AI reads, overriding its original directives.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" id="s6">
+        <h2>Closing Call to Action</h2>
+        <p>Audit your most deployed agent today. Find the one tool it calls most frequently, and put a 5-minute expiry on its access token. Make the agent earn its keys.</p>
+        
+        <div class="social-share">
+          <a href="https://twitter.com/intent/tweet?text=Static%20IAM%20is%20a%20dead%20perimeter%20in%20prompt-driven%20systems.%20AI%20agents%20need%20dynamic%2C%20session-scoped%2C%20intent-based%20authorization&url=" target="_blank" id="twitter-share">Share on X</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" id="linkedin-share">Share on LinkedIn</a>
+        </div>
+      </section>
+      
+      <footer>
+        <span>Source: LangChain CVE-2023-36258, Chevrolet Watsonville Incident</span>
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Top</button>
+        <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+      </footer>
+    </article>
+  </main>
+</div>
+
+<script>
+  // Reading Progress
+  window.addEventListener('scroll', () => {
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    document.getElementById('progress').style.width = scrolled + '%';
+  });
+
+  // Mobile Nav
+  const hamburger = document.getElementById('hamburger');
+  const rail = document.getElementById('rail');
+  const scrim = document.getElementById('scrim');
+  hamburger.addEventListener('click', () => {
+    rail.classList.toggle('open');
+    scrim.classList.toggle('open');
+  });
+  scrim.addEventListener('click', () => {
+    rail.classList.remove('open');
+    scrim.classList.remove('open');
+  });
+
+  // Share Links URL injection
+  document.getElementById('twitter-share').href += window.location.href;
+  document.getElementById('linkedin-share').href += window.location.href;
+</script>
+</body>
+</html>
