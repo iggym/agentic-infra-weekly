@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crying Wolf in Code</title>
+<style>
+:root {
+  --max: 660px;
+  --bg: #0d1117;
+  --card: #161b22;
+  --text: #c9d1d9;
+  --heading: #f0f6fc;
+  --accent: #58a6ff;
+  --border: #30363d;
+  --snap: #ff7b72;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+}
+#progress {
+  position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+  background: linear-gradient(90deg, var(--accent), #bc8cff);
+  z-index: 1000; transition: width 0.1s ease-out;
+}
+#topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13, 17, 23, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.breadcrumb { font-size: 0.9rem; color: var(--text); }
+.breadcrumb a { color: var(--accent); text-decoration: none; }
+.read-time { font-size: 0.8rem; color: #8b949e; }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+.wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  max-width: calc(var(--max) + 260px);
+  margin: 0 auto;
+  gap: 40px;
+  padding: 20px;
+}
+#rail {
+  position: sticky; top: 100px;
+  height: fit-content;
+  counter-reset: rail-counter;
+}
+#rail a {
+  display: block; color: var(--text); text-decoration: none;
+  padding: 8px 0; font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+#rail a::before {
+  counter-increment: rail-counter;
+  content: counter(rail-counter) ". ";
+  color: #8b949e; margin-right: 8px;
+}
+#rail a:hover { color: var(--accent); }
+
+main {
+  max-width: var(--max);
+  width: 100%;
+}
+.hero-title {
+  font-size: clamp(2.1rem, 5vw, 3.1rem);
+  color: var(--heading); font-weight: 800;
+  line-height: 1.2; margin-bottom: 20px;
+}
+.chapter {
+  scroll-margin-top: 100px;
+  margin-bottom: 40px;
+}
+h2 {
+  color: var(--heading); font-size: 1.5rem;
+  margin-bottom: 16px; margin-top: 32px;
+}
+p { margin-bottom: 16px; }
+
+.spectrum {
+  height: 12px; width: 100%;
+  background: linear-gradient(90deg, #ff7b72 0%, #ffa657 50%, var(--accent) 100%);
+  border-radius: 6px; margin: 20px 0;
+  position: relative;
+}
+.spectrum::after {
+  content: "Semantic Quality →";
+  position: absolute; right: 0; top: 16px;
+  font-size: 0.8rem; color: #8b949e;
+}
+
+blockquote {
+  border-left: 4px solid var(--snap);
+  background: rgba(255, 123, 114, 0.1);
+  padding: 16px 20px; margin: 24px 0;
+  font-weight: bold; color: var(--snap);
+  font-size: 1.1rem;
+}
+
+.share-block { margin: 24px 0; display: flex; gap: 10px; }
+.share-btn {
+  padding: 8px 16px; border-radius: 6px;
+  text-decoration: none; font-size: 0.9rem;
+  border: 1px solid var(--border); color: var(--text);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.share-btn:hover { background: var(--card); border-color: var(--accent); }
+
+.svg-diagram, .concept-map {
+  width: 100%; height: auto;
+  background: var(--card); border-radius: 8px;
+  margin: 20px 0; padding: 20px;
+}
+.svg-node { fill: var(--card); stroke: var(--accent); stroke-width: 2; transition: fill 0.2s ease; }
+.svg-node:hover { fill: rgba(88, 166, 255, 0.2); }
+
+.recall-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; margin: 16px 0;
+  cursor: pointer; transition: transform 0.3s ease;
+}
+.recall-card .answer { display: none; color: var(--accent); margin-top: 10px; }
+.recall-card.flipped .answer { display: block; }
+.recall-card.flipped .question { color: #8b949e; }
+
+footer {
+  max-width: var(--max); margin: 40px auto 0;
+  border-top: 1px solid var(--border); padding: 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.citation { font-size: 0.8rem; color: #8b949e; }
+.scroll-top { align-self: flex-start; color: var(--accent); text-decoration: none; cursor: pointer; }
+
+#scrim {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+  z-index: 90;
+}
+
+@media (max-width: 880px) {
+  .wrap { grid-template-columns: 1fr; }
+  .hamburger { display: block; }
+  #rail {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 280px; height: 100%; background: var(--bg);
+    padding: 60px 20px; z-index: 99;
+    border-right: 1px solid var(--border);
+  }
+  #rail.open { display: block; }
+  #scrim.open { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="scrim"></div>
+
+<header id="topbar">
+  <div class="breadcrumb">
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a> / Observability
+  </div>
+  <div class="read-time">5 min read</div>
+  <button class="hamburger" id="hamburger">☰</button>
+</header>
+
+<div class="wrap">
+  <nav id="rail">
+    <a href="#s1">The Green Board Blues</a>
+    <a href="#s2">Mind the Water</a>
+    <a href="#s3">Pipes and Prisms</a>
+    <a href="#s4">The Empty Room</a>
+    <a href="#s5">Shift the Focus</a>
+    <a href="#s6">Check Your Output</a>
+  </nav>
+
+  <main>
+    <article>
+      <h1 class="hero-title">Crying Wolf in Code</h1>
+      
+      <div class="spectrum" title="Old Model (Infra) to New Model (Semantic)"></div>
+
+      <section class="chapter" id="s1">
+        <h2>The Green Board Blues</h2>
+        <p>In early 2026, Indeed's engineering team was staring at a perfectly green Datadog dashboard. Latency was low, error rates were zero, and HTTP 200s were flowing steadily. Yet, user complaints were skyrocketing. Their AI-generated job summaries were completely broken—hallucinating fake titles, outputting empty strings, or abruptly truncating mid-sentence. The infrastructure was perfectly healthy; the product was failing.</p>
+        <p>Across the industry, Cursor IDE was fighting its own phantom menace. Their AI code completions slowed to a crawl. Grafana dashboards flashed red, showing GPU utilization on their inference cluster maxed out. Engineers scaled up vLLM instances, throwing more compute at the problem. It took days to realize the GPUs weren't underpowered; a Redis cache eviction policy was dropping prompt prefixes, forcing the models to recompute contexts repeatedly.</p>
+        <p>Both teams were blind not because they lacked data, but because their alerts were screaming about the wrong things.</p>
+
+        <svg class="svg-diagram" viewBox="0 0 400 150">
+          <rect x="10" y="50" width="80" height="40" class="svg-node" rx="4"/>
+          <text x="50" y="75" text-anchor="middle" font-size="12" fill="#c9d1d9">User Prompt</text>
+          <path d="M90 70 L140 70" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="140" y="50" width="120" height="40" class="svg-node" rx="4"/>
+          <text x="200" y="75" text-anchor="middle" font-size="12" fill="#c9d1d9">LLM (vLLM/Vertex)</text>
+          <path d="M260 70 L310 70" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="310" y="50" width="80" height="40" class="svg-node" rx="4"/>
+          <text x="350" y="75" text-anchor="middle" font-size="12" fill="#c9d1d9">200 OK</text>
+          <text x="200" y="120" text-anchor="middle" font-size="10" fill="#8b949e">Standard Trace: 200ms latency, 200 OK</text>
+        </svg>
+      </section>
+
+      <section class="chapter" id="s2">
+        <h2>Mind the Water</h2>
+        <p>AI observability alerts on the wrong signal because we measure plumbing instead of water quality. We monitor GPU utilization, HTTP status codes, and token counts, completely missing semantic drift and structural failure.</p>
+        <p>Traditional observability assumes deterministic transformations: if the server responds fast and with a 200, the job is done. LLMs are non-deterministic compilers. A 200 OK only means the server finished talking, not that it made sense.</p>
+      </section>
+
+      <section class="chapter" id="s3">
+        <h2>Pipes and Prisms</h2>
+        <p>We treat LLMs like microservices, but they are closer to dynamic compilers with a 5% baseline hallucination rate. The SRE Four Golden Signals—latency, traffic, errors, saturation—break down when the "error" is a perfectly formatted JSON object containing a disastrous hallucination.</p>
+        <p>Indeed's Datadog setup was tracking infrastructure health, completely blind to semantic quality. Cursor's Grafana dashboards tracked resource saturation, but missed the cache layer's actual hit ratio.</p>
+        
+        <blockquote>A 200 OK is just the server saying it finished talking, not that it made sense.</blockquote>
+
+        <p>We need to connect the plumbing of SRE with the prisms of ML evaluation. Tools like Helicone act as a transparent proxy, intercepting the water flow to test for lead. Langfuse stitches together the trace, linking the user's prompt to the model's output and the GPU's latency. Phoenix visualizes the semantic drift over time.</p>
+
+        <svg class="concept-map" viewBox="0 0 400 200">
+          <circle cx="100" cy="100" r="40" class="svg-node"/>
+          <text x="100" y="105" text-anchor="middle" font-size="12" fill="#c9d1d9">SRE Signals</text>
+          <circle cx="300" cy="100" r="40" class="svg-node"/>
+          <text x="300" y="105" text-anchor="middle" font-size="12" fill="#c9d1d9">LLM Evals</text>
+          <line x1="140" y1="100" x2="260" y2="100" stroke="#58a6ff" stroke-width="2"/>
+          <circle cx="200" cy="100" r="15" fill="#0d1117" stroke="#bc8cff" stroke-width="2"/>
+          <text x="200" y="105" text-anchor="middle" font-size="8" fill="#bc8cff">Drift</text>
+        </svg>
+
+        <div class="recall-card" onclick="this.classList.toggle('flipped')">
+          <p class="question">What are the SRE Four Golden Signals?</p>
+          <p class="answer">Latency, traffic, errors, saturation. (But they miss semantic quality!)</p>
+        </div>
+      </section>
+
+      <section class="chapter" id="s4">
+        <h2>The Empty Room</h2>
+        <p>The strongest counterargument: "Infrastructure monitoring is the foundation; you need it first." True, but a foundation isn't a roof. Treating infra health as feature health gives false confidence. You can have zero 502 errors and still ship a broken product.</p>
+        <p>The systems-thinking methodology at work here is a failure of error budgets. Indeed had no error budget for "hallucinated job titles" because they only budgeted for latency and HTTP 500s. They applied SRE principles to the network layer while leaving the semantic layer completely unmonitored.</p>
+      </section>
+
+      <section class="chapter" id="s5">
+        <h2>Shift the Focus</h2>
+        <p>If your alerts are firing on CPU spikes but ignoring semantic drift, you are driving blind. Here are three high-leverage actions to fix it:</p>
+        <p><strong>1. Add a Semantic Validator to Your Proxy:</strong> Route your LLM calls through a proxy like Helicone. Use a fast, cheap model (like Groq's Llama 3) as an LLM-as-judge to flag outputs that deviate from expected schemas or tones.</p>
+        <p><strong>2. Track Output Distribution Drift:</strong> Don't just log tokens. Use tools like Phoenix to calculate embeddings of your outputs over time. If the semantic distance between yesterday's outputs and today's outputs spikes, trigger an alert.</p>
+        <p><strong>3. Implement Quality Circuit Breakers:</strong> Instead of retrying on a 500, retry when the output fails a semantic check. Link this to Langfuse traces so you can see exactly which prompt configuration caused the drift.</p>
+      </section>
+
+      <section class="chapter" id="s6">
+        <h2>Check Your Output</h2>
+        <p>Stop alerting on plumbing. Pick your most-used AI feature, write a single regex or LLM-as-judge check for its worst failure mode, and wire it to a Slack alert today.</p>
+        
+        <div class="share-block">
+          <a href="#" class="share-btn" id="share-twitter">Share on X</a>
+          <a href="#" class="share-btn" id="share-linkedin">Share on LinkedIn</a>
+        </div>
+      </section>
+    </article>
+
+    <footer>
+      <p class="citation">Source: Indeed Engineering Blog (Q1 2026) - LLM Observability Transition</p>
+      <p class="citation">Source: Cursor IDE Postmortem (March 2026) - Redis KV Cache Eviction</p>
+      <a href="#" class="scroll-top" id="scrollTop">Back to top</a>
+      <a href="https://iggym.github.io/agentic-infra-weekly/" class="scroll-top">Home</a>
+    </footer>
+  </main>
+</div>
+
+<script>
+// Progress Bar
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  document.getElementById('progress').style.width = scrolled + "%";
+});
+
+// Mobile Menu
+const hamburger = document.getElementById('hamburger');
+const rail = document.getElementById('rail');
+const scrim = document.getElementById('scrim');
+hamburger.addEventListener('click', () => {
+  rail.classList.toggle('open');
+  scrim.classList.toggle('open');
+});
+scrim.addEventListener('click', () => {
+  rail.classList.remove('open');
+  scrim.classList.remove('open');
+});
+
+// Smooth Scroll
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    if(this.classList.contains('share-btn')) return;
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      rail.classList.remove('open');
+      scrim.classList.remove('open');
+    }
+  });
+});
+
+// Social Share
+const shareText = encodeURIComponent("AI observability fails because we monitor plumbing instead of water quality. A 200 OK only means the server finished talking, not that it made sense.");
+const currentUrl = window.location.href;
+document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${shareText}&url=${currentUrl}`;
+document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`;
+</script>
+</body>
+</html>
