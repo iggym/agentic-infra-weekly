@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pave, Don't Pick — Agentic Infra Weekly</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --max:660px;
+  --bg:#0c0e14;
+  --fg:#e4e2de;
+  --muted:#7e818a;
+  --accent:#f5a623;
+  --accent2:#22c997;
+  --card:#151821;
+  --border:#252833;
+  --topbar-h:56px;
+  --rail-w:220px;
+}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition-duration:0s!important;animation-duration:0s!important}}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--fg);line-height:1.7;font-size:1rem;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent2)}
+::selection{background:var(--accent);color:#000}
+
+/* ── Focus-visible ── */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ── Progress Bar ── */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:1001;transition:width .08s linear}
+@media(prefers-reduced-motion:reduce){#progress{transition:none}}
+
+/* ── Topbar ── */
+#topbar{position:sticky;top:0;z-index:900;height:var(--topbar-h);display:flex;align-items:center;padding:0 1.5rem;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(12,14,20,.78);border-bottom:1px solid var(--border)}
+#topbar nav{display:flex;align-items:center;gap:1rem;width:100%;max-width:960px;margin:0 auto}
+#topbar .home{font-weight:700;color:var(--fg);font-size:.9rem;white-space:nowrap}
+#topbar .breadcrumb{color:var(--muted);font-size:.8rem;white-space:nowrap}
+#topbar .reading-time{color:var(--muted);font-size:.8rem;margin-left:auto;white-space:nowrap}
+#hamburger{display:none;background:none;border:1px solid var(--border);color:var(--fg);font-size:1.2rem;cursor:pointer;padding:6px 8px;border-radius:6px;transition:background .2s}
+#hamburger:hover,#hamburger:focus-visible{background:var(--border)}
+
+/* ── Layout ── */
+.wrap{display:grid;grid-template-columns:var(--rail-w) 1fr;max-width:calc(var(--max) + 260px);margin:0 auto}
+#rail{position:sticky;top:100px;align-self:start;padding:2rem 1rem 2rem 1.5rem;counter-reset:chapter}
+#rail ol{list-style:none;padding:0}
+#rail li{counter-increment:chapter;margin-bottom:.5rem;font-size:.82rem}
+#rail li::before{content:counter(chapter);display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--border);color:var(--muted);font-size:.7rem;margin-right:.5rem;transition:background .2s,color .2s;flex-shrink:0}
+#rail li.active::before{background:var(--accent);color:#000}
+#rail a{color:var(--muted);transition:color .2s}
+#rail li.active a{color:var(--fg);font-weight:600}
+
+main{max-width:var(--max);padding:2rem 1.5rem 4rem;min-width:0}
+
+/* ── Hero ── */
+.hero{margin-bottom:3rem;padding-top:1rem}
+.hero h1{font-size:clamp(2.1rem,5vw,3.1rem);line-height:1.1;font-weight:800;letter-spacing:-.03em;margin-bottom:.75rem}
+.hero .subtitle{color:var(--muted);font-size:1.1rem;margin-bottom:.5rem}
+.hero .meta{color:var(--muted);font-size:.8rem;display:flex;gap:1rem;flex-wrap:wrap}
+
+/* ── Spectrum Widget ── */
+.spectrum{margin:2rem 0;padding:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.spectrum-labels{display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.spectrum-labels .old{color:#e05252}
+.spectrum-labels .new{color:var(--accent2)}
+.spectrum-bar{height:32px;border-radius:8px;background:linear-gradient(90deg,#e05252 0%,#e05252 40%,var(--accent) 60%,var(--accent2) 100%);position:relative;overflow:hidden}
+.spectrum-bar::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(0,0,0,.1) 8px,rgba(0,0,0,.1) 10px)}
+.spectrum-caption{font-size:.8rem;color:var(--muted);margin-top:.5rem;text-align:center}
+
+/* ── Chapters ── */
+.chapter{scroll-margin-top:calc(var(--topbar-h) + 1rem);margin-bottom:2.5rem}
+.chapter h2{font-size:1.5rem;font-weight:700;margin-bottom:1rem;letter-spacing:-.02em}
+.chapter p{margin-bottom:1rem;color:var(--fg)}
+.chapter h3{font-size:1.15rem;font-weight:700;margin:1.5rem 0 .75rem;color:var(--accent)}
+
+/* ── Pull Quote ── */
+.pull-quote{border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin:2rem 0;background:var(--card);border-radius:0 8px 8px 0;font-size:1.2rem;font-weight:700;line-height:1.4;color:var(--fg)}
+
+/* ── SVG Diagrams (shared) ── */
+.svg-diagram{position:relative;margin:2rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.svg-diagram svg{width:100%;height:auto;display:block}
+.svg-hit{cursor:pointer;fill:transparent;stroke:none;pointer-events:all}
+.svg-layer-group{cursor:pointer}
+.svg-layer-group text{pointer-events:none}
+.svg-node-group{cursor:pointer}
+.svg-node-group text{pointer-events:none}
+.svg-tip{position:absolute;background:var(--bg);border:1px solid var(--accent);border-radius:8px;padding:.6rem .9rem;font-size:.8rem;color:var(--fg);max-width:280px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.5);line-height:1.45}
+.svg-tip.show{opacity:1}
+
+/* ── Recall Cards ── */
+.recall-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin:2rem 0}
+.recall-card{perspective:800px;height:200px;cursor:pointer;position:relative}
+.recall-card-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.recall-card.flipped .recall-card-inner{transform:rotateY(180deg)}
+.recall-card-front,.recall-card-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.recall-card-front{background:var(--card);border:1px solid var(--border)}
+.recall-card-front .q-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.5rem;font-weight:600}
+.recall-card-front .q-text{font-size:.92rem;line-height:1.5}
+.recall-card-front .tap-hint{position:absolute;bottom:10px;right:14px;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.recall-card-back{background:var(--accent);color:#000;transform:rotateY(180deg);border-radius:12px}
+.recall-card-back .a-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;font-weight:600;opacity:.65}
+.recall-card-back .a-text{font-size:.92rem;line-height:1.5;font-weight:600}
+.recall-card .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border);position:absolute;top:12px;right:12px;transition:background .3s}
+.recall-card.seen .progress-dot{background:var(--accent2)}
+
+/* ── Social Share ── */
+.share-block{margin:2.5rem 0;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.share-block span{font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer;transition:background .2s,border-color .2s,transform .15s}
+.share-btn:hover{background:var(--border);border-color:var(--accent)}
+.share-btn:active{transform:scale(.97)}
+.share-btn svg{width:16px;height:16px;fill:currentColor}
+
+/* ── CTA ── */
+.cta-box{background:linear-gradient(135deg,rgba(245,166,35,.12),rgba(34,201,151,.12));border:1px solid var(--accent);border-radius:12px;padding:2rem;margin:2rem 0;text-align:center}
+.cta-box p{font-size:1.05rem;margin-bottom:1rem;color:var(--fg)}
+.cta-action{display:inline-block;background:var(--accent);color:#000;padding:.75rem 2rem;border-radius:8px;font-weight:700;font-size:.95rem;transition:opacity .2s,transform .15s;cursor:pointer;border:none}
+.cta-action:hover{opacity:.85}
+.cta-action:active{transform:scale(.97)}
+
+/* ── Footer ── */
+footer{margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}
+footer .citations{font-size:.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.6}
+footer .citations strong{color:var(--fg)}
+footer .footer-links{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.scroll-top{color:var(--muted);font-size:.8rem;cursor:pointer;background:none;border:none;padding:4px 8px;border-radius:4px;transition:color .2s,background .2s}
+.scroll-top:hover{color:var(--accent);background:var(--card)}
+footer .home-link{color:var(--accent);font-size:.8rem;font-weight:600}
+
+/* ── Scrim ── */
+#scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800}
+#scrim.open{display:block}
+
+/* ── Responsive ── */
+@media(max-width:880px){
+  .wrap{grid-template-columns:1fr}
+  #rail{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--bg);border-right:1px solid var(--border);z-index:850;transform:translateX(-100%);transition:transform .25s ease;padding:calc(var(--topbar-h) + 1rem) 1rem 2rem 1.5rem;overflow-y:auto}
+  #rail.open{transform:translateX(0)}
+  #hamburger{display:block}
+  main{max-width:100%;padding:1.5rem 1rem 4rem}
+  .recall-cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+<!-- Topbar -->
+<header id="topbar">
+  <nav>
+    <a href="https://iggym.github.io/agentic-infra-weekly/" class="home">Agentic Infra Weekly</a>
+    <span class="breadcrumb">Week 23 &middot; 2026</span>
+    <span class="reading-time" id="readingTime"></span>
+    <button id="hamburger" aria-label="Toggle table of contents" aria-expanded="false">&#9776;</button>
+  </nav>
+</header>
+
+<!-- Scrim -->
+<div id="scrim" aria-hidden="true"></div>
+
+<!-- Main Layout -->
+<div class="wrap">
+  <!-- Sidebar -->
+  <aside id="rail" aria-label="Table of contents">
+    <ol>
+      <li><a href="#s0">The Opening</a></li>
+      <li><a href="#s1">The Choice Trap</a></li>
+      <li><a href="#s2">Hidden Wiring</a></li>
+      <li><a href="#s3">Lock-In or Lift-Off</a></li>
+      <li><a href="#s4">Ship by Tuesday</a></li>
+      <li><a href="#s5">Count and Create</a></li>
+    </ol>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <article>
+
+      <!-- Hero -->
+      <header class="hero">
+        <h1>Pave, Don't Pick</h1>
+        <p class="subtitle">Why most developer platforms make engineers slower — and the teams who actually ship fast never touch the portal</p>
+        <div class="meta">
+          <span>Week 23 &middot; June 2026</span>
+          <span>Developer Enablement</span>
+        </div>
+      </header>
+
+      <!-- Spectrum Widget -->
+      <div class="spectrum">
+        <div class="spectrum-labels">
+          <span class="old">Self-Service Portal</span>
+          <span class="new">Invisible Platform</span>
+        </div>
+        <div class="spectrum-bar" role="img" aria-label="Spectrum from self-service portal to invisible platform"></div>
+        <p class="spectrum-caption">Old model: give engineers more choices. New model: give them fewer decisions.</p>
+      </div>
+
+      <!-- Opening Scene -->
+      <section class="chapter" id="s0">
+        <p>In 2016, a Spotify engineer sat down to deploy a new microservice. She opened her browser and faced a wall: fifteen separate internal tools, each with its own login, its own documentation, and its own opinion about how things should work. She wasn't new — she'd been at Spotify for two years. But the infrastructure had grown faster than the tooling to manage it. By the time Spotify's platform team cataloged the sprawl, they counted over a hundred internal tools. Each one built to solve a real problem. Each one adding a new decision a developer had to make before writing a single line of product code.</p>
+        <p>This wasn't a Spotify problem. It was the industry's problem, wearing a Spotify t-shirt.</p>
+      </section>
+
+      <!-- The Choice Trap -->
+      <section class="chapter" id="s1">
+        <h2>The Choice Trap</h2>
+        <p>Here's the pattern: a company's infrastructure gets complex. Someone builds a portal to unify it. The portal lists every tool, every option, every configuration. It's "self-service." Engineers can now choose from all the things. And they do — slowly, inconsistently, and often incorrectly.</p>
+        <p>The Bold Reframe: <strong>developer platforms that accelerate shipping don't give engineers more choices. They give them fewer decisions.</strong> The fastest teams don't have better portals. They have better defaults that make the platform invisible.</p>
+        <p>Spotify's Backstage became the most widely adopted developer portal in the world — not because it was a great portal, but because of something quieter: its Software Templates. These templates were opinionated scaffolds that let a developer spin up a new service with the right CI/CD pipeline, the right monitoring, the right Kubernetes config — all pre-baked. You didn't choose your monitoring stack. You didn't choose your deployment strategy. The template chose for you. And that was the point.</p>
+        <p>The Spotify platform team's layered architecture tells the story: infrastructure runs on Google Kubernetes Engine; orchestration uses Helm charts distributed via Backstage Software Templates; the runtime layer connects to Google Cloud Pub/Sub and BigQuery; observability runs through Google Cloud Operations Suite and OpenTelemetry; governance uses Google Cloud IAM with custom service-to-service mTLS. Each layer is a decision a developer no longer has to make. The template encodes the right answer for each one.</p>
+      </section>
+
+      <!-- Architecture SVG Diagram -->
+      <div class="svg-diagram" id="archDiagram">
+        <svg viewBox="0 0 600 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Spotify Backstage layered architecture diagram">
+          <text x="300" y="14" text-anchor="middle" fill="#7e818a" font-size="10" font-family="system-ui">Hover or tap a layer for details</text>
+          <!-- Layer 5: Governance -->
+          <g class="svg-layer-group" data-tip="Google Cloud IAM + custom mTLS — identity and encryption enforced at the mesh level, invisible to developers">
+            <rect class="layer-bg" x="20" y="24" width="560" height="56" rx="8" fill="#f5a623" fill-opacity=".15" stroke="#f5a623" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="24" width="560" height="56" rx="8"/>
+            <text x="40" y="57" fill="#f5a623" font-size="13" font-weight="700" font-family="system-ui">GOVERNANCE</text>
+            <text x="200" y="57" fill="#e4e2de" font-size="11" font-family="system-ui">Google Cloud IAM · mTLS · Backstage RBAC</text>
+          </g>
+          <!-- Layer 4: Observability -->
+          <g class="svg-layer-group" data-tip="Cloud Operations Suite + OpenTelemetry — metrics and traces auto-provisioned by the template, no developer config needed">
+            <rect class="layer-bg" x="20" y="88" width="560" height="56" rx="8" fill="#22c997" fill-opacity=".15" stroke="#22c997" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="88" width="560" height="56" rx="8"/>
+            <text x="40" y="121" fill="#22c997" font-size="13" font-weight="700" font-family="system-ui">OBSERVABILITY</text>
+            <text x="200" y="121" fill="#e4e2de" font-size="11" font-family="system-ui">Cloud Ops Suite · OpenTelemetry · Auto-instrumented</text>
+          </g>
+          <!-- Layer 3: Data / Runtime -->
+          <g class="svg-layer-group" data-tip="Pub/Sub for async messaging, BigQuery for analytics — the template wires these in so the developer never writes connection boilerplate">
+            <rect class="layer-bg" x="20" y="152" width="560" height="56" rx="8" fill="#6c8cff" fill-opacity=".15" stroke="#6c8cff" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="152" width="560" height="56" rx="8"/>
+            <text x="40" y="185" fill="#6c8cff" font-size="13" font-weight="700" font-family="system-ui">DATA / RUNTIME</text>
+            <text x="200" y="185" fill="#e4e2de" font-size="11" font-family="system-ui">Pub/Sub · BigQuery · Custom Service Mesh</text>
+          </g>
+          <!-- Layer 2: Orchestration -->
+          <g class="svg-layer-group" data-tip="Helm charts + Backstage Software Templates — the template IS the golden path. One click, all decisions pre-made.">
+            <rect class="layer-bg" x="20" y="216" width="560" height="56" rx="8" fill="#e05252" fill-opacity=".15" stroke="#e05252" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="216" width="560" height="56" rx="8"/>
+            <text x="40" y="249" fill="#e05252" font-size="13" font-weight="700" font-family="system-ui">ORCHESTRATION</text>
+            <text x="200" y="249" fill="#e4e2de" font-size="11" font-family="system-ui">Helm · Backstage Templates · Spinnaker (legacy)</text>
+          </g>
+          <!-- Layer 1: Infrastructure -->
+          <g class="svg-layer-group" data-tip="GKE on Google Cloud — the base layer. Developers never touch this; the template provisions it.">
+            <rect class="layer-bg" x="20" y="280" width="560" height="56" rx="8" fill="#8b8d93" fill-opacity=".15" stroke="#8b8d93" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="280" width="560" height="56" rx="8"/>
+            <text x="40" y="313" fill="#8b8d93" font-size="13" font-weight="700" font-family="system-ui">INFRASTRUCTURE</text>
+            <text x="200" y="313" fill="#e4e2de" font-size="11" font-family="system-ui">Google Kubernetes Engine (GKE) · Google Cloud</text>
+          </g>
+        </svg>
+        <div class="svg-tip" id="archTip"></div>
+      </div>
+
+      <!-- Hidden Wiring -->
+      <section class="chapter" id="s2">
+        <h2>Hidden Wiring</h2>
+        <p>The connection most teams miss is between cognitive load and velocity. Team Topologies — the methodology defined by Matthew Skelton and Manuel Pais — explicitly names cognitive load as the limiting factor on team performance. A platform team's job isn't to build a catalog of tools. It's to reduce the cognitive load on stream-aligned teams so they can focus on the domain they serve.</p>
+        <p>Adidas adopted this approach in their platform engineering journey, presented at KubeCon EU 2023. Their platform team built on Kubernetes with ArgoCD for GitOps and Backstage as the developer portal. But the critical insight from their talk wasn't about the portal. It was about the golden paths — opinionated, pre-approved routes through the infrastructure that a developer could follow without thinking about what lay beneath. The platform team's measure of success wasn't portal page views. It was time-to-first-deploy for a new engineer.</p>
+        <p>Zalando's platform engineering team took this even further. Their internal developer platform, built on Kubernetes on AWS EKS, was designed so that engineers interact with Git and CI/CD, not with Kubernetes directly. The platform team's principle was explicit: if a developer needs to understand Kubernetes to deploy a service, the platform has failed. They use ArgoCD for GitOps reconciliation and custom admission controllers for governance. The developer's workflow is: write code, push to Git, get a running service. The platform handles the rest.</p>
+        <p>The systems-thinking methodology at work here is the GitOps reconciliation loop — the platform continuously converges the actual state toward the desired state, so developers don't need to intervene. Combined with defense-in-depth (admission controllers, IAM policies, network policies), the platform enforces the right behavior without requiring the developer to think about it.</p>
+      </section>
+
+      <!-- Pull Quote -->
+      <blockquote class="pull-quote">
+        The best platform is the one you never open.
+      </blockquote>
+
+      <!-- Lock-In or Lift-Off -->
+      <section class="chapter" id="s3">
+        <h2>Lock-In or Lift-Off</h2>
+        <p>"Paved paths are just lock-in with a friendly name. Engineers need flexibility to solve novel problems."</p>
+        <p>Fair — if your paved path is a cage. But the teams that get this right build paved paths with escape hatches. Spotify's Backstage templates are forkable. If a team needs something the template doesn't provide, they can eject and customize. But the default is fast. The override exists when you need it. The key design principle: make the right thing the easy thing, and make the custom thing possible. Most teams, most of the time, never need the escape hatch.</p>
+        <p>This is the same principle behind GitOps reconciliation loops in ArgoCD — you can manually override, but the system will keep pulling you back toward the desired state. The same principle behind progressive delivery and canary rollouts in SRE practice — you can deploy directly, but the safe path is the default. The same principle behind idempotency in infrastructure-as-code — you can run your Terraform apply repeatedly, and the result converges. The pattern is consistent: reduce the default decision surface, preserve the escape route.</p>
+      </section>
+
+      <!-- Candidate Comparison Chart -->
+      <h3>Tool Comparison</h3>
+      <div class="svg-diagram" id="compChart">
+        <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Candidate tool comparison chart">
+          <text x="300" y="14" text-anchor="middle" fill="#7e818a" font-size="10" font-family="system-ui">Hover or tap a bar for details</text>
+          <!-- PathForge -->
+          <g class="svg-layer-group" data-tip="PathForge — Generate golden-path templates from your best services. Free: 3 templates/mo. Paid: $29/mo unlimited + analytics.">
+            <rect x="20" y="30" width="560" height="60" rx="8" fill="#f5a623" fill-opacity=".1" stroke="#f5a623" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="30" width="560" height="60" rx="8"/>
+            <text x="40" y="55" fill="#f5a623" font-size="14" font-weight="700" font-family="system-ui">PathForge</text>
+            <text x="40" y="75" fill="#e4e2de" font-size="11" font-family="system-ui">Template generation from existing repos · Gemini + GitHub API</text>
+            <text x="540" y="55" fill="#f5a623" font-size="11" font-weight="600" font-family="system-ui" text-anchor="end">Free / $29</text>
+          </g>
+          <!-- FrictionLens -->
+          <g class="svg-layer-group" data-tip="FrictionLens — Quantify cognitive load of your developer workflow by counting decisions. Free: 1 repo. Paid: $49/mo unlimited.">
+            <rect x="20" y="105" width="560" height="60" rx="8" fill="#22c997" fill-opacity=".1" stroke="#22c997" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="105" width="560" height="60" rx="8"/>
+            <text x="40" y="130" fill="#22c997" font-size="14" font-weight="700" font-family="system-ui">FrictionLens</text>
+            <text x="40" y="150" fill="#e4e2de" font-size="11" font-family="system-ui">Cognitive load measurement · CI/CD decision-count analysis</text>
+            <text x="540" y="130" fill="#22c997" font-size="11" font-weight="600" font-family="system-ui" text-anchor="end">Free / $49</text>
+          </g>
+          <!-- PaveCheck -->
+          <g class="svg-layer-group" data-tip="PaveCheck — Audit your paved paths vs. unpaved ones. Are golden-path services actually faster? Free: 1 comparison. Paid: $79/mo.">
+            <rect x="20" y="180" width="560" height="60" rx="8" fill="#6c8cff" fill-opacity=".1" stroke="#6c8cff" stroke-width="1.5"/>
+            <rect class="svg-hit" x="20" y="180" width="560" height="60" rx="8"/>
+            <text x="40" y="205" fill="#6c8cff" font-size="14" font-weight="700" font-family="system-ui">PaveCheck</text>
+            <text x="40" y="225" fill="#e4e2de" font-size="11" font-family="system-ui">Golden-path velocity audit · Compare paved vs. unpaved services</text>
+            <text x="540" y="205" fill="#6c8cff" font-size="11" font-weight="600" font-family="system-ui" text-anchor="end">Free / $79</text>
+          </g>
+          <!-- Legend -->
+          <text x="300" y="270" text-anchor="middle" fill="#7e818a" font-size="10" font-family="system-ui">All three deploy on Cloudflare Pages + Workers · Gemini free-tier API · Stripe</text>
+        </svg>
+        <div class="svg-tip" id="compTip"></div>
+      </div>
+
+      <!-- Ship by Tuesday -->
+      <section class="chapter" id="s4">
+        <h2>Ship by Tuesday</h2>
+        <p><strong>1. Audit your decision surface.</strong> Count the number of choices a developer makes to deploy a new service. If it's more than five, you have a golden-path opportunity. Use <strong>FrictionLens</strong> to measure cognitive load across your repos — the free tier covers one repository, which is enough to spot the pattern.</p>
+        <p><strong>2. Build one golden path, not a portal.</strong> Pick the most common service type in your organization and create a single, opinionated template that deploys it with monitoring, CI/CD, and security pre-configured. Use <strong>PathForge</strong> to generate the scaffold from your best-performing service — the free tier gives you three template generations.</p>
+        <p><strong>3. Measure time-to-first-deploy, not portal adoption.</strong> Your platform's success metric is how fast a new engineer can ship their first change, not how many people log into your portal. Use <strong>PaveCheck</strong> to compare velocity on golden-path vs. non-golden-path services — the free tier gives you one comparison, which is enough to prove the concept.</p>
+      </section>
+
+      <!-- Recall Cards -->
+      <h3 style="font-size:1.1rem;margin:2rem 0 1rem;color:var(--accent)">Test Your Recall</h3>
+      <div class="recall-cards">
+        <div class="recall-card" data-id="rc1" tabindex="0" role="button" aria-label="Recall card 1 of 3. Press to reveal answer.">
+          <div class="recall-card-inner">
+            <div class="recall-card-front">
+              <span class="q-label">Question</span>
+              <span class="q-text">What's the single strongest predictor of developer velocity on a platform?</span>
+              <span class="tap-hint">Tap to reveal</span>
+            </div>
+            <div class="recall-card-back">
+              <span class="a-label">Answer</span>
+              <span class="a-text">Cognitive load reduction — not tool count, not portal adoption, not self-service options.</span>
+            </div>
+          </div>
+        </div>
+        <div class="recall-card" data-id="rc2" tabindex="0" role="button" aria-label="Recall card 2 of 3. Press to reveal answer.">
+          <div class="recall-card-inner">
+            <div class="recall-card-front">
+              <span class="q-label">Question</span>
+              <span class="q-text">What made Spotify's Backstage effective — the portal or the templates?</span>
+              <span class="tap-hint">Tap to reveal</span>
+            </div>
+            <div class="recall-card-back">
+              <span class="a-label">Answer</span>
+              <span class="a-text">The Software Templates. They pre-baked the right decisions so developers didn't have to make them.</span>
+            </div>
+          </div>
+        </div>
+        <div class="recall-card" data-id="rc3" tabindex="0" role="button" aria-label="Recall card 3 of 3. Press to reveal answer.">
+          <div class="recall-card-inner">
+            <div class="recall-card-front">
+              <span class="q-label">Question</span>
+              <span class="q-text">What's the design principle behind effective paved paths?</span>
+              <span class="tap-hint">Tap to reveal</span>
+            </div>
+            <div class="recall-card-back">
+              <span class="a-label">Answer</span>
+              <span class="a-text">Make the right thing the easy thing, and make the custom thing possible. Default fast, override available.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concept Map SVG -->
+      <h3 style="font-size:1.1rem;margin:2rem 0 1rem;color:var(--accent)">Concept Map</h3>
+      <div class="svg-diagram" id="conceptMap">
+        <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept map of core architectural ideas">
+          <text x="300" y="14" text-anchor="middle" fill="#7e818a" font-size="10" font-family="system-ui">Hover or tap a node for details</text>
+          <!-- Edges -->
+          <line class="cm-edge" x1="300" y1="68" x2="130" y2="162" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="300" y1="68" x2="470" y2="162" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="300" y1="68" x2="300" y2="172" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="130" y1="162" x2="80" y2="280" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="130" y1="162" x2="220" y2="280" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="470" y1="162" x2="390" y2="280" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="470" y1="162" x2="530" y2="280" stroke="#252833" stroke-width="1.5"/>
+          <line class="cm-edge" x1="300" y1="172" x2="300" y2="280" stroke="#252833" stroke-width="1.5"/>
+          <!-- Nodes -->
+          <g class="svg-node-group" data-tip="The central idea: fewer decisions means faster shipping">
+            <circle cx="300" cy="68" r="42" fill="#f5a623" fill-opacity=".18" stroke="#f5a623" stroke-width="2"/>
+            <circle class="svg-hit" cx="300" cy="68" r="42"/>
+            <text x="300" y="64" text-anchor="middle" font-weight="700" font-size="11" font-family="system-ui" fill="#f5a623">Fewer</text>
+            <text x="300" y="78" text-anchor="middle" font-weight="700" font-size="11" font-family="system-ui" fill="#f5a623">Decisions</text>
+          </g>
+          <g class="svg-node-group" data-tip="Opinionated scaffolds that pre-bake infrastructure decisions — the mechanism behind Backstage's success">
+            <circle cx="130" cy="162" r="38" fill="#22c997" fill-opacity=".18" stroke="#22c997" stroke-width="2"/>
+            <circle class="svg-hit" cx="130" cy="162" r="38"/>
+            <text x="130" y="158" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#22c997">Golden</text>
+            <text x="130" y="172" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#22c997">Paths</text>
+          </g>
+          <g class="svg-node-group" data-tip="The Team Topologies concept: the limiting factor on team velocity is how much they must hold in their head">
+            <circle cx="300" cy="172" r="38" fill="#6c8cff" fill-opacity=".18" stroke="#6c8cff" stroke-width="2"/>
+            <circle class="svg-hit" cx="300" cy="172" r="38"/>
+            <text x="300" y="168" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#6c8cff">Cognitive</text>
+            <text x="300" y="182" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#6c8cff">Load</text>
+          </g>
+          <g class="svg-node-group" data-tip="The portal is the delivery mechanism, not the product. Templates are the product.">
+            <circle cx="470" cy="162" r="38" fill="#e05252" fill-opacity=".18" stroke="#e05252" stroke-width="2"/>
+            <circle class="svg-hit" cx="470" cy="162" r="38"/>
+            <text x="470" y="158" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#e05252">Self-Service</text>
+            <text x="470" y="172" text-anchor="middle" font-weight="600" font-size="11" font-family="system-ui" fill="#e05252">Portal</text>
+          </g>
+          <g class="svg-node-group" data-tip="Pre-baked, opinionated scaffolds — Backstage Software Templates, Cookiecutter, etc.">
+            <circle cx="80" cy="280" r="30" fill="#22c997" fill-opacity=".1" stroke="#22c997" stroke-width="1.5"/>
+            <circle class="svg-hit" cx="80" cy="280" r="30"/>
+            <text x="80" y="276" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#22c997">Software</text>
+            <text x="80" y="289" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#22c997">Templates</text>
+          </g>
+          <g class="svg-node-group" data-tip="The escape hatch: defaults are fast, but customization is possible. Fork-friendly.">
+            <circle cx="220" cy="280" r="30" fill="#22c997" fill-opacity=".1" stroke="#22c997" stroke-width="1.5"/>
+            <circle class="svg-hit" cx="220" cy="280" r="30"/>
+            <text x="220" y="276" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#22c997">Paved Path</text>
+            <text x="220" y="289" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#22c997">+ Escape</text>
+          </g>
+          <g class="svg-node-group" data-tip="How fast can a new engineer ship their first change? The metric that matters.">
+            <circle cx="300" cy="280" r="30" fill="#6c8cff" fill-opacity=".1" stroke="#6c8cff" stroke-width="1.5"/>
+            <circle class="svg-hit" cx="300" cy="280" r="30"/>
+            <text x="300" y="276" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#6c8cff">Time-to-</text>
+            <text x="300" y="289" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#6c8cff">First-Deploy</text>
+          </g>
+          <g class="svg-node-group" data-tip="The anti-pattern: measuring portal logins instead of shipping speed.">
+            <circle cx="390" cy="280" r="30" fill="#e05252" fill-opacity=".1" stroke="#e05252" stroke-width="1.5"/>
+            <circle class="svg-hit" cx="390" cy="280" r="30"/>
+            <text x="390" y="276" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#e05252">Adoption</text>
+            <text x="390" y="289" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#e05252">Vanity</text>
+          </g>
+          <g class="svg-node-group" data-tip="The trap: more choices feels empowering but creates decision fatigue and inconsistency.">
+            <circle cx="530" cy="280" r="30" fill="#e05252" fill-opacity=".1" stroke="#e05252" stroke-width="1.5"/>
+            <circle class="svg-hit" cx="530" cy="280" r="30"/>
+            <text x="530" y="276" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#e05252">Decision</text>
+            <text x="530" y="289" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui" fill="#e05252">Fatigue</text>
+          </g>
+        </svg>
+        <div class="svg-tip" id="cmTip"></div>
+      </div>
+
+      <!-- Count and Create (CTA) -->
+      <section class="chapter" id="s5">
+        <h2>Count and Create</h2>
+        <div class="cta-box">
+          <p>Open your CI/CD pipeline config right now. Count the decision points. If you find more than five, you've found your first golden path candidate — and it's not a portal. It's a template.</p>
+          <a href="#s1" class="cta-action">Re-read the Reframe</a>
+        </div>
+      </section>
+
+      <!-- Social Share -->
+      <div class="share-block">
+        <span>Share</span>
+        <a class="share-btn" id="shareX" href="#" target="_blank" rel="noopener" aria-label="Share on X/Twitter">
+          <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          X
+        </a>
+        <a class="share-btn" id="shareLinkedIn" href="#" target="_blank" rel="noopener" aria-label="Share on LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <footer>
+        <div class="citations">
+          <strong>Sources:</strong> Spotify engineering blog, Backstage.io documentation (CNCF incubating project); Adidas platform engineering talk, KubeCon EU 2023; Zalando engineering blog and platform engineering documentation; Skelton &amp; Pais, <em>Team Topologies</em> (2019); ArgoCD documentation; Gartner platform engineering research (2023).
+        </div>
+        <div class="footer-links">
+          <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">&uarr; Back to top</button>
+          <a href="https://iggym.github.io/agentic-infra-weekly/" class="home-link">Agentic Infra Weekly &rarr;</a>
+        </div>
+      </footer>
+
+    </article>
+  </main>
+</div>
+
+<script>
+(function(){
+  /* ── Reduced-motion guard ── */
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Reading Time ── */
+  var txt = document.querySelector('article').innerText;
+  var wc = txt.split(/\s+/).length;
+  var rm = Math.max(1, Math.round(wc / 230));
+  document.getElementById('readingTime').textContent = rm + ' min read';
+
+  /* ── Progress Bar ── */
+  var bar = document.getElementById('progress');
+  function onScroll(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+    bar.style.width = pct + '%';
+    bar.setAttribute('aria-valuenow', Math.round(pct));
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ── Scroll Spy ── */
+  var chapters = document.querySelectorAll('.chapter');
+  var railItems = document.querySelectorAll('#rail li');
+  function spy(){
+    var cur = 0;
+    for(var i=0;i<chapters.length;i++){
+      if(chapters[i].getBoundingClientRect().top < 160) cur = i;
+    }
+    for(var j=0;j<railItems.length;j++){
+      railItems[j].classList.toggle('active', j === cur);
+    }
+  }
+  window.addEventListener('scroll', spy, {passive:true});
+  spy();
+
+  /* ── Hamburger / Sidebar ── */
+  var hamburger = document.getElementById('hamburger');
+  var rail = document.getElementById('rail');
+  var scrim = document.getElementById('scrim');
+  function openRail(){ rail.classList.add('open'); scrim.classList.add('open'); hamburger.setAttribute('aria-expanded','true'); }
+  function closeRail(){ rail.classList.remove('open'); scrim.classList.remove('open'); hamburger.setAttribute('aria-expanded','false'); }
+  function toggleRail(){ rail.classList.contains('open') ? closeRail() : openRail(); }
+  hamburger.addEventListener('click', toggleRail);
+  scrim.addEventListener('click', closeRail);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && rail.classList.contains('open')) closeRail(); });
+  rail.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeRail); });
+
+  /* ── SVG Tooltip Helper ── */
+  function wireSvgTips(containerId, tipId, selector){
+    var container = document.getElementById(containerId);
+    var tip = document.getElementById(tipId);
+    if(!container || !tip) return;
+    var groups = container.querySelectorAll(selector);
+    groups.forEach(function(g){
+      function show(e){
+        var msg = g.getAttribute('data-tip');
+        if(!msg) return;
+        tip.textContent = msg;
+        tip.classList.add('show');
+        var cr = container.getBoundingClientRect();
+        var cx = (e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0));
+        var cy = (e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0));
+        var x = cx - cr.left + 12;
+        var y = cy - cr.top + 12;
+        /* keep tooltip inside container */
+        if(x + 260 > cr.width) x = cx - cr.left - 270;
+        if(y + 80 > cr.height) y = cy - cr.top - 70;
+        if(x < 4) x = 4;
+        if(y < 4) y = 4;
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+      }
+      function hide(){ tip.classList.remove('show'); }
+      g.addEventListener('mouseenter', show);
+      g.addEventListener('mousemove', show);
+      g.addEventListener('mouseleave', hide);
+      g.addEventListener('touchstart', function(e){ e.preventDefault(); show(e); }, {passive:false});
+      g.addEventListener('touchend', hide);
+      g.addEventListener('focus', show);
+      g.addEventListener('blur', hide);
+    });
+  }
+  wireSvgTips('archDiagram', 'archTip', '.svg-layer-group');
+  wireSvgTips('compChart', 'compTip', '.svg-layer-group');
+  wireSvgTips('conceptMap', 'cmTip', '.svg-node-group');
+
+  /* ── Recall Cards ── */
+  var seen = {};
+  try{ seen = JSON.parse(sessionStorage.getItem('pf_seen') || '{}'); }catch(e){}
+  document.querySelectorAll('.recall-card').forEach(function(card){
+    var id = card.getAttribute('data-id');
+    if(seen[id]) card.classList.add('seen');
+    function flip(){
+      card.classList.toggle('flipped');
+      seen[id] = true;
+      card.classList.add('seen');
+      try{ sessionStorage.setItem('pf_seen', JSON.stringify(seen)); }catch(e){}
+    }
+    card.addEventListener('click', flip);
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flip(); }
+    });
+  });
+
+  /* ── Social Share ── */
+  var shareText = encodeURIComponent("Developer platforms that accelerate shipping don't give engineers more choices — they give them fewer decisions. Pave, don't pick.");
+  var shareUrl = encodeURIComponent(window.location.href);
+  var xBtn = document.getElementById('shareX');
+  var liBtn = document.getElementById('shareLinkedIn');
+  if(xBtn) xBtn.href = 'https://twitter.com/intent/tweet?text=' + shareText + '&url=' + shareUrl;
+  if(liBtn) liBtn.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
+
+  /* ── Scroll to Top ── */
+  var topBtn = document.getElementById('scrollTop');
+  if(topBtn){
+    topBtn.addEventListener('click', function(){
+      window.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'});
+    });
+  }
+
+  /* ── CTA action link ── */
+  var ctaBtn = document.querySelector('.cta-action');
+  if(ctaBtn){
+    ctaBtn.addEventListener('click', function(e){
+      var href = this.getAttribute('href');
+      if(href && href.charAt(0)==='#'){
+        e.preventDefault();
+        var target = document.querySelector(href);
+        if(target) target.scrollIntoView({behavior: reduced ? 'auto' : 'smooth', block:'start'});
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
