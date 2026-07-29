@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Routing Robin Hood</title>
+<style>
+  :root {
+    --max: 660px;
+    --bg: #0a0a0a;
+    --fg: #f0f0f0;
+    --accent: #00ff88;
+    --card: #1a1a1a;
+    --border: #333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 4px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), #0088ff);
+    z-index: 1000;
+    transition: width 0.1s ease-out;
+  }
+  #topbar {
+    position: sticky;
+    top: 0;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+  }
+  .nav-links a { color: var(--fg); margin-right: 1rem; text-decoration: none; font-size: 0.9rem; }
+  .nav-links a:hover { color: var(--accent); }
+  .wrap {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    max-width: calc(var(--max) + 260px);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  #rail {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+    padding-top: 2rem;
+    counter-reset: rail-counter;
+  }
+  #rail a {
+    display: block;
+    color: #888;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    transition: color 0.2s;
+  }
+  #rail a::before {
+    counter-increment: rail-counter;
+    content: counter(rail-counter) ". ";
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+  #rail a:hover { color: var(--fg); }
+  main {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  .hero-title {
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    background: linear-gradient(45deg, var(--fg), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .chapter {
+    scroll-margin-top: 100px;
+    margin-bottom: 3rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  p { margin-bottom: 1.2rem; }
+  .spectrum {
+    height: 60px;
+    background: linear-gradient(90deg, #ff4444, #ffcc00, var(--accent));
+    border-radius: 8px;
+    margin: 2rem 0;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  blockquote {
+    border-left: 4px solid var(--accent);
+    background: var(--card);
+    padding: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    font-size: 1.2rem;
+  }
+  .share-block {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .share-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .share-btn:hover { background: var(--card); }
+  
+  /* Interactive SVG */
+  .svg-container { margin: 2rem 0; text-align: center; }
+  .svg-layer { cursor: pointer; transition: opacity 0.3s; opacity: 0.5; }
+  .svg-layer:hover, .svg-layer.active { opacity: 1; }
+  .svg-tooltip { fill: var(--fg); font-size: 12px; opacity: 0; transition: opacity 0.3s; }
+  .svg-layer.active + .svg-tooltip, .svg-layer:hover + .svg-tooltip { opacity: 1; }
+
+  /* Recall Cards */
+  .recall-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .recall-card:hover { border-color: var(--accent); }
+  .recall-answer { display: none; margin-top: 1rem; color: var(--accent); }
+  .recall-card.flipped .recall-answer { display: block; }
+  .recall-card.flipped .recall-question { display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  @media (max-width: 880px) {
+    .wrap { grid-template-columns: 1fr; }
+    #rail {
+      position: fixed;
+      top: 0; left: -250px;
+      width: 250px;
+      height: 100vh;
+      background: var(--card);
+      padding: 4rem 1rem;
+      transition: left 0.3s ease;
+      z-index: 99;
+    }
+    #rail.open { left: 0; }
+    #scrim {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      z-index: 98;
+    }
+    #scrim.show { display: block; }
+    .hamburger { display: block; cursor: pointer; font-size: 1.5rem; }
+  }
+  @media (min-width: 881px) {
+    .hamburger { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <div class="hamburger" onclick="toggleRail()">☰</div>
+  <nav class="nav-links">
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+    <span>Issue 10</span>
+    <span>5 min read</span>
+  </nav>
+</header>
+
+<div id="scrim" onclick="toggleRail()"></div>
+
+<div class="wrap">
+  <aside id="rail">
+    <a href="#s1">The Fast and Frugal</a>
+    <a href="#s2">Peeking Under the Hood</a>
+    <a href="#s3">Connecting the Dots</a>
+    <a href="#s4">Grain of Salt</a>
+    <a href="#s5">Pulling the Trigger</a>
+    <a href="#s6">Plug the Leak</a>
+  </aside>
+
+  <main>
+    <article>
+      <h1 class="hero-title">The Routing Robin Hood</h1>
+      <p>A developer at Cursor frantically types a complex refactoring request. They hit enter. The UI spins for half a second, then instantly begins streaming highly optimized code. In the background, the system didn't just send the prompt to an LLM. It evaluated the semantic complexity, checked a local cache, and routed the request through a high-speed arbitrage loop. It chose Claude 3.5 Sonnet for the reasoning, but routed the autocomplete to a custom, highly quantized in-house model served via vLLM. The user felt speed. The company saved money.</p>
+      
+      <blockquote>Your AI model router is not a load balancer; it is a high-frequency trading engine, and treating it like one is the only way to survive inference costs.</blockquote>
+
+      <section class="chapter" id="s1">
+        <h2>The Fast and Frugal</h2>
+        <p>When platforms first integrate AI, they hardcode a single endpoint. OpenAI gets the request. As traffic scales, costs bleed. The instinctive fix is to switch to a cheaper model. But cheaper models hallucinate. They miss context. The real fix isn't downgrading the model; it's upgrading the router.</p>
+        <p>GitLab Duo discovered this when integrating AWS Bedrock. Initially, routing all requests to the most capable model led to massive cost overruns during peak CI/CD pipeline executions. They overhauled their routing layer on GCP GKE, implementing strict FinOps guardrails. If a developer asked, "Summarize this PR," the router recognized the low-value task and routed it to a smaller, cheaper model. If a developer asked, "Find the security vulnerability in this merge request," the router sent it to Claude.</p>
+        <p>This is the core of the reframe. The router isn't deciding who gets the traffic. It is deciding the exact price-point of the compute required to satisfy the user's tolerance for latency and accuracy.</p>
+        <div class="spectrum">
+          <span>Low Cost / Fast</span>
+          <span>High Cost / Deep</span>
+        </div>
+      </section>
+
+      <section class="chapter" id="s2">
+        <h2>Peeking Under the Hood</h2>
+        <p>To build this trading engine, you need a layered architecture that understands state. Look at how LangChain reacted when Anthropic released prompt caching. Suddenly, the router couldn't just look at the prompt. It had to look at the prefix.</p>
+        <p>If the prompt had a static system instruction, the router hashed it and checked Upstash Redis. If a cache hit was likely, the router actively prioritized the Anthropic endpoint via Cloudflare Workers, capturing a 90% cost reduction. Even if OpenAI had a slightly faster base latency for that specific task, the Anthropic endpoint was cheaper because of the cache.</p>
+        
+        <div class="svg-container">
+          <svg width="100%" height="150" viewBox="0 0 400 150">
+            <g class="svg-layer" onclick="toggleLayer(this)">
+              <rect x="10" y="10" width="380" height="30" rx="5" fill="#007bff" />
+              <text x="20" y="30" fill="white">Infrastructure: Cloudflare / AWS EKS</text>
+            </g>
+            <text class="svg-tooltip" x="20" y="50">Edge compute and Kubernetes orchestration</text>
+            
+            <g class="svg-layer" onclick="toggleLayer(this)">
+              <rect x="10" y="60" width="380" height="30" rx="5" fill="#28a745" />
+              <text x="20" y="80" fill="white">Data/Runtime: Redis / vLLM / Bedrock</text>
+            </g>
+            <text class="svg-tooltip" x="20" y="100">Semantic caching and model serving</text>
+
+            <g class="svg-layer" onclick="toggleLayer(this)">
+              <rect x="10" y="110" width="380" height="30" rx="5" fill="#dc3545" />
+              <text x="20" y="130" fill="white">Observability: Datadog / LangSmith</text>
+            </g>
+            <text class="svg-tooltip" x="20" y="140">Tracing latency budgets and cost metrics</text>
+          </svg>
+        </div>
+
+        <blockquote>Inference is a perishable commodity.</blockquote>
+        <p>The router executes state-aware cost arbitrage, hunting for micro-inefficiencies across vendor APIs exactly like a high-frequency trading algorithm.</p>
+      </section>
+
+      <section class="chapter" id="s3">
+        <h2>Connecting the Dots</h2>
+        <p>Most engineering teams still view the AI router as a simple reverse proxy. A request comes in, it goes out. But the systems-thinking methodologies at work here—latency budgeting, semantic caching, and FinOps guardrails—reveal a different reality.</p>
+        <p>Cursor uses latency budgeting on AWS EKS. They define strict P99 limits. If a response is taking too long, the router dynamically downgrades the model mid-flight. It pulls the request from GPT-4o and finishes it on a faster, dumber model. The UI never stalls. They optimized for human perception rather than raw model intelligence.</p>
+        <p>The hidden connection is that AI platforms are becoming fintech systems. The infrastructure layer (Kubernetes, Cloudflare) is the exchange. The models (Claude, GPT-4, Llama) are the commodities. The routing layer is the algorithmic trading desk.</p>
+      </section>
+
+      <section class="chapter" id="s4">
+        <h2>Grain of Salt</h2>
+        <p>The strongest counterargument is that simple round-robin routing is "good enough" and building a custom routing engine is over-engineering. But round-robin ignores semantic caching and latency budgets, leading to 40% budget waste. When GitLab implemented cost-aware routing, they didn't just save money; they stabilized their enterprise margins. Without it, broad AI adoption cannibalizes infrastructure budgets within days.</p>
+      </section>
+
+      <section class="chapter" id="s5">
+        <h2>Pulling the Trigger</h2>
+        <p>You don't need to build a massive platform to start. You need to implement the trading desk.</p>
+        <div class="recall-card" onclick="this.classList.toggle('flipped')">
+          <div class="recall-question">What systems-thinking methodology does Cursor use to manage P99 limits?</div>
+          <div class="recall-answer">Latency budgeting. The router downgrades models mid-flight if response time exceeds limits.</div>
+        </div>
+        <div class="recall-card" onclick="this.classList.toggle('flipped')">
+          <div class="recall-question">Why did LangChain update its router for Anthropic prompt caching?</div>
+          <div class="recall-answer">To execute state-aware cost arbitrage, routing to Anthropic for cache hits even if base latency was higher.</div>
+        </div>
+        <p>1. Audit your prompt flows. Use RouteOptimus to simulate multi-model costs.<br>
+        2. Implement semantic caching with Redis.<br>
+        3. Set latency budgets with a tracer like LatencyBudget.</p>
+      </section>
+
+      <section class="chapter" id="s6">
+        <h2>Plug the Leak</h2>
+        <p>Stop treating your AI router like a dumb pipe. Audit your top five most frequent AI prompts today and map their latency-to-cost ratio. Find the leak, and plug it.</p>
+        
+        <div class="share-block">
+          <a href="https://twitter.com/intent/tweet?text=Your%20AI%20router%20isn%27t%20a%20load%20balancer%3B%20it%27s%20a%20high-frequency%20trading%20engine." target="_blank" class="share-btn">Share on X</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" class="share-btn" id="linkedin-share">Share on LinkedIn</a>
+        </div>
+      </section>
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div>
+    <p><strong>Citations:</strong> Cursor Engineering Blog; GitLab Duo Architecture; LangChain/Anthropic Release Notes.</p>
+  </div>
+  <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Back to Top</a>
+  <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+</footer>
+
+<script>
+  // Reading Progress
+  window.addEventListener('scroll', () => {
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    document.getElementById('progress').style.width = scrolled + '%';
+  });
+
+  // Mobile Rail Toggle
+  function toggleRail() {
+    document.getElementById('rail').classList.toggle('open');
+    document.getElementById('scrim').classList.toggle('show');
+  }
+
+  // SVG Layer Toggle
+  function toggleLayer(el) {
+    el.classList.toggle('active');
+  }
+
+  // LinkedIn Share URL
+  document.getElementById('linkedin-share').href += window.location.href;
+</script>
+</body>
+</html>
