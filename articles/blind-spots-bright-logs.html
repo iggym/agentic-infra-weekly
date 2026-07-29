@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blind Spots, Bright Logs — Agentic Infra Weekly</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-card: #1c2128;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #f0a500;
+  --accent-dim: rgba(240,165,0,0.15);
+  --accent-hover: #d4940a;
+  --danger: #f85149;
+  --danger-dim: rgba(248,81,73,0.12);
+  --success: #3fb950;
+  --success-dim: rgba(63,185,80,0.12);
+  --border: #30363d;
+  --max: 660px;
+  --radius: 8px;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-heading: Georgia, 'Noto Serif', 'Times New Roman', serif;
+  --transition: 0.25s ease;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ─── Progress Bar ─── */
+#progress {
+  position: fixed; top: 0; left: 0; height: 3px; z-index: 1001;
+  background: linear-gradient(90deg, var(--accent), var(--danger), var(--accent));
+  width: 0%; transition: width 0.1s linear;
+}
+
+/* ─── Topbar ─── */
+#topbar {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(13,17,23,0.78);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem; height: 56px;
+  display: flex; align-items: center;
+}
+.topbar-inner {
+  max-width: calc(var(--max) + 260px + 2rem);
+  width: 100%; margin: 0 auto;
+  display: flex; align-items: center; gap: 1rem;
+}
+.home-link {
+  font-weight: 800; font-size: 0.9rem; letter-spacing: 0.05em;
+  color: var(--accent); text-transform: uppercase; white-space: nowrap;
+}
+.breadcrumb { font-size: 0.8rem; color: var(--text-muted); }
+.breadcrumb span { margin: 0 0.3rem; }
+.reading-time { margin-left: auto; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+#menu-btn {
+  display: none; background: none; border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius); padding: 0.4rem 0.6rem;
+  cursor: pointer; font-size: 1.2rem; line-height: 1;
+}
+
+/* ─── Scrim ─── */
+#scrim {
+  display: none; position: fixed; inset: 0; z-index: 998;
+  background: rgba(0,0,0,0.5);
+}
+#scrim.active { display: block; }
+
+/* ─── Layout ─── */
+.wrap {
+  max-width: calc(var(--max) + 260px);
+  margin: 0 auto; padding: 2rem 1rem;
+  display: grid; grid-template-columns: 220px 1fr; gap: 2rem;
+}
+
+/* ─── Sidebar ─── */
+#rail {
+  position: sticky; top: 100px; align-self: start;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+}
+#rail ol {
+  list-style: none; counter-reset: rail-counter;
+}
+#rail li {
+  counter-increment: rail-counter; margin-bottom: 0.5rem;
+}
+#rail li::before {
+  content: counter(rail-counter); display: inline-block;
+  width: 1.5rem; font-weight: 700; color: var(--accent);
+  font-size: 0.8rem; font-variant-numeric: tabular-nums;
+}
+#rail a {
+  font-size: 0.85rem; color: var(--text-muted); transition: color var(--transition);
+}
+#rail a:hover, #rail a.active { color: var(--text); text-decoration: none; }
+
+/* ─── Main ─── */
+main { max-width: var(--max); min-width: 0; }
+
+/* ─── Hero ─── */
+.hero { margin-bottom: 3rem; }
+.hero h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(2.1rem, 5vw, 3.1rem);
+  line-height: 1.15; margin-bottom: 0.75rem; font-weight: 700;
+}
+.hero .meta {
+  font-size: 0.85rem; color: var(--text-muted);
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+}
+.hero .tag {
+  display: inline-block; padding: 0.15rem 0.6rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600; background: var(--accent-dim); color: var(--accent);
+}
+
+/* ─── Chapters ─── */
+.chapter {
+  scroll-margin-top: 80px; margin-bottom: 2.5rem;
+}
+.chapter h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem; margin-bottom: 1rem; color: var(--text);
+  padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+}
+.chapter p { margin-bottom: 1rem; }
+.chapter strong { color: var(--text); }
+
+/* ─── Pull Quote ─── */
+.pull-quote {
+  font-family: var(--font-heading);
+  font-size: 1.3rem; line-height: 1.4;
+  border-left: 3px solid var(--accent);
+  padding: 1rem 1.5rem; margin: 2rem 0;
+  color: var(--text); background: var(--accent-dim);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ─── Spectrum Widget ─── */
+.spectrum-widget {
+  margin: 2rem 0; padding: 1.5rem; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.spectrum-widget h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.spectrum-row {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+}
+.spectrum-label { font-size: 0.8rem; color: var(--text-muted); min-width: 80px; text-align: right; }
+.spectrum-bar {
+  flex: 1; height: 32px; border-radius: 4px; position: relative; overflow: hidden;
+}
+.spectrum-bar.old-model {
+  background: linear-gradient(90deg, #3fb950 0%, #3fb950 100%);
+}
+.spectrum-bar.new-model {
+  background: linear-gradient(90deg, #3fb950 0%, #3fb950 40%, #f0a500 40%, #f0a500 70%, #f85149 70%, #f85149 100%);
+}
+.spectrum-legend {
+  display: flex; gap: 1.5rem; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;
+}
+.spectrum-legend span::before {
+  content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.3rem; vertical-align: middle;
+}
+.spectrum-legend .leg-user::before { background: #3fb950; }
+.spectrum-legend .leg-agent::before { background: #f0a500; }
+.spectrum-legend .leg-injected::before { background: #f85149; }
+
+/* ─── SVG Diagrams ─── */
+.diagram-container {
+  margin: 2rem 0; overflow-x: auto; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;
+}
+.diagram-container h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.svg-diagram { width: 100%; max-width: 100%; }
+.svg-diagram text { font-family: var(--font-body); }
+.layer-rect { cursor: pointer; transition: opacity var(--transition); }
+.layer-rect:hover { opacity: 0.85; }
+.layer-label { pointer-events: none; }
+.svg-tooltip {
+  position: absolute; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.5rem 0.75rem; font-size: 0.8rem;
+  color: var(--text); max-width: 260px; pointer-events: none; z-index: 100;
+  opacity: 0; transition: opacity 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.svg-tooltip.visible { opacity: 1; }
+
+/* ─── Recall Cards ─── */
+.recall-section { margin: 2.5rem 0; }
+.recall-section h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.recall-grid { display: grid; gap: 1rem; }
+.recall-card {
+  perspective: 1000px; cursor: pointer; min-height: 120px;
+}
+.recall-card-inner {
+  position: relative; width: 100%; min-height: 120px;
+  transition: transform 0.5s; transform-style: preserve-3d;
+}
+.recall-card.flipped .recall-card-inner { transform: rotateY(180deg); }
+.recall-card-front, .recall-card-back {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  border-radius: var(--radius); padding: 1.25rem; display: flex; align-items: center;
+  border: 1px solid var(--border);
+}
+.recall-card-front {
+  background: var(--bg-card); font-weight: 600; font-size: 0.95rem;
+}
+.recall-card-front::after {
+  content: 'tap to reveal'; position: absolute; bottom: 0.75rem; right: 1rem;
+  font-size: 0.7rem; color: var(--text-muted); font-weight: 400;
+}
+.recall-card-back {
+  background: var(--accent-dim); border-color: var(--accent);
+  transform: rotateY(180deg); font-size: 0.9rem; line-height: 1.5;
+}
+.recall-progress {
+  margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);
+}
+.recall-progress-bar {
+  height: 4px; background: var(--border); border-radius: 2px; margin-top: 0.3rem; overflow: hidden;
+}
+.recall-progress-fill {
+  height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s;
+}
+
+/* ─── Concept Map ─── */
+.concept-map-container {
+  margin: 2.5rem 0; overflow-x: auto; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;
+}
+.concept-map-container h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.concept-node { cursor: pointer; transition: transform var(--transition); }
+.concept-node:hover { transform: scale(1.05); }
+
+/* ─── Share Block ─── */
+.share-block { margin: 2.5rem 0; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+.share-block h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.share-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.2rem; border-radius: var(--radius); font-size: 0.85rem;
+  font-weight: 600; border: 1px solid var(--border); color: var(--text);
+  background: var(--bg-elevated); cursor: pointer; transition: all var(--transition);
+  text-decoration: none;
+}
+.share-btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+/* ─── Footer ─── */
+footer {
+  max-width: calc(var(--max) + 260px); margin: 3rem auto 0;
+  padding: 2rem 1rem; border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;
+}
+footer .citations { font-size: 0.75rem; color: var(--text-muted); max-width: var(--max); line-height: 1.5; }
+footer .citations strong { color: var(--text); }
+.to-top-btn {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: var(--radius); padding: 0.5rem 1rem;
+  cursor: pointer; font-size: 0.8rem; transition: all var(--transition);
+}
+.to-top-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── Responsive ─── */
+@media (max-width: 880px) {
+  .wrap { grid-template-columns: 1fr; }
+  #rail {
+    position: fixed; top: 56px; left: 0; bottom: 0; width: 260px;
+    background: var(--bg-elevated); border-right: 1px solid var(--border);
+    z-index: 999; padding: 1.5rem; transform: translateX(-100%);
+    transition: transform var(--transition);
+  }
+  #rail.open { transform: translateX(0); }
+  #menu-btn { display: block; }
+  .reading-time { display: none; }
+  main { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress"></div>
+
+<!-- Topbar -->
+<header id="topbar">
+  <div class="topbar-inner">
+    <a href="https://iggym.github.io/agentic-infra-weekly/" class="home-link">AIW</a>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="https://iggym.github.io/agentic-infra-weekly/">Weekly</a>
+      <span>›</span>
+      <span>Week 08</span>
+    </nav>
+    <span class="reading-time">8 min read</span>
+    <button id="menu-btn" aria-label="Toggle navigation" onclick="toggleRail()">☰</button>
+  </div>
+</header>
+
+<!-- Scrim -->
+<div id="scrim" onclick="toggleRail()"></div>
+
+<!-- Main Layout -->
+<div class="wrap">
+  <!-- Sidebar -->
+  <aside id="rail">
+    <ol>
+      <li><a href="#s1">The Wrong Fingerprint</a></li>
+      <li><a href="#s2">The Audit's Blind Spot</a></li>
+      <li><a href="#s3">Chain of Causality</a></li>
+      <li><a href="#s4">Why Filters Fail</a></li>
+      <li><a href="#s5">Fix the Attribution</a></li>
+      <li><a href="#s6">The Next 24 Hours</a></li>
+    </ol>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <article>
+      <!-- Hero -->
+      <header class="hero">
+        <h1>Blind Spots, Bright Logs</h1>
+        <div class="meta">
+          <span class="tag">Security & Governance</span>
+          <span>Week 08 · 2026-02-16</span>
+          <span>8 min read</span>
+        </div>
+      </header>
+
+      <!-- Spectrum Widget -->
+      <div class="spectrum-widget">
+        <h3>Attribution Spectrum</h3>
+        <div class="spectrum-row">
+          <span class="spectrum-label">Old Model</span>
+          <div class="spectrum-bar old-model" role="img" aria-label="Old model: single-color bar representing user-only attribution"></div>
+        </div>
+        <div class="spectrum-row">
+          <span class="spectrum-label">New Model</span>
+          <div class="spectrum-bar new-model" role="img" aria-label="New model: three-color bar representing user, agent, and injected-prompt attribution"></div>
+        </div>
+        <div class="spectrum-legend">
+          <span class="leg-user">User intent</span>
+          <span class="leg-agent">Agent action</span>
+          <span class="leg-injected">Injected prompt</span>
+        </div>
+      </div>
+
+      <!-- Chapter 1 -->
+      <section class="chapter" id="s1">
+        <h2>The Wrong Fingerprint</h2>
+        <p>The Microsoft Purview audit log showed Alice Chen accessing the company compensation database at 2:47 PM on a Tuesday. The log entry was accurate — timestamp, user principal name, resource, API endpoint. Everything checked out. Security operations closed the alert within minutes.</p>
+        <p>What the log didn't capture was that Alice had never asked to see salary data. She'd asked Copilot to summarize a vendor spreadsheet. The spreadsheet contained a hidden prompt injected by someone outside the organization. That prompt instructed the agent to search for compensation records and embed them in a URL for exfiltration. The agent obeyed. The audit trail recorded it as Alice's action.</p>
+        <p>Security researcher Michael Bargury at Zenity demonstrated this exact class of attack against Microsoft 365 Copilot. His research showed how an attacker could embed malicious instructions in emails, documents, or meeting invitations that Copilot reads and executes. In one demonstration, a poisoned email caused Copilot to auto-forward future messages to an external address. In another, a crafted document tricked the agent into extracting sensitive data and encoding it in a URL. Microsoft Purview faithfully logged each action under the victim user's identity.</p>
+      </section>
+
+      <!-- Architecture Diagram -->
+      <div class="diagram-container">
+        <h3>Microsoft 365 Copilot — Attack Architecture</h3>
+        <svg class="svg-diagram" viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg">
+          <!-- Infrastructure -->
+          <rect class="layer-rect" x="10" y="10" width="580" height="54" rx="6" fill="#1a3a5c" data-tip="Microsoft Azure hosts the entire M365 stack. The attack path flows through Azure-hosted services without triggering infrastructure-level alerts."/>
+          <text class="layer-label" x="30" y="42" fill="#e6edf3" font-size="13" font-weight="700">Infrastructure</text>
+          <text x="200" y="42" fill="#8b949e" font-size="11">Microsoft Azure</text>
+
+          <!-- Orchestration -->
+          <rect class="layer-rect" x="10" y="72" width="580" height="54" rx="6" fill="#1a3a2c" data-tip="Copilot is deployed via M365 Admin Center. The agent's deployment configuration grants it access to Graph API, Exchange, and SharePoint — all under the user's identity."/>
+          <text class="layer-label" x="30" y="104" fill="#e6edf3" font-size="13" font-weight="700">Orchestration</text>
+          <text x="200" y="104" fill="#8b949e" font-size="11">M365 Admin Center · Copilot Provisioning</text>
+
+          <!-- Data / Runtime -->
+          <rect class="layer-rect" x="10" y="134" width="580" height="54" rx="6" fill="#3a2a1a" data-tip="The runtime layer connects Graph API to Exchange, SharePoint, OneDrive, and Azure OpenAI GPT-4. The injected prompt is read from a document, processed by GPT-4, and executed via Graph API — all within the user's session."/>
+          <text class="layer-label" x="30" y="166" fill="#e6edf3" font-size="13" font-weight="700">Data / Runtime</text>
+          <text x="200" y="166" fill="#8b949e" font-size="11">Graph API · Exchange · SharePoint · Azure OpenAI GPT-4</text>
+
+          <!-- Observability -->
+          <rect class="layer-rect" x="10" y="196" width="580" height="54" rx="6" fill="#2a1a3a" data-tip="Purview Audit and Sentinel log every API call under the user's identity. The gap: they cannot distinguish between user-initiated and prompt-injected actions."/>
+          <text class="layer-label" x="30" y="228" fill="#e6edf3" font-size="13" font-weight="700">Observability</text>
+          <text x="200" y="228" fill="#8b949e" font-size="11">Purview Audit · Microsoft Sentinel</text>
+          <text x="470" y="228" fill="#f85149" font-size="11" font-weight="700">⚠ ATTRIBUTION GAP</text>
+
+          <!-- Security -->
+          <rect class="layer-rect" x="10" y="258" width="580" height="54" rx="6" fill="#3a1a1a" data-tip="Entra ID, Conditional Access, and DLP all function correctly — but they evaluate the user's identity, not the causal chain of who prompted the agent to act."/>
+          <text class="layer-label" x="30" y="290" fill="#e6edf3" font-size="13" font-weight="700">Security</text>
+          <text x="200" y="290" fill="#8b949e" font-size="11">Entra ID · Conditional Access · Purview DLP · Info Barriers</text>
+
+          <!-- Attack path arrow -->
+          <line x1="530" y1="30" x2="530" y2="296" stroke="#f85149" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
+          <text x="540" y="165" fill="#f85149" font-size="10" transform="rotate(90,540,165)">Attack path</text>
+        </svg>
+        <div class="svg-tooltip" id="svg-tooltip"></div>
+      </div>
+
+      <!-- Chapter 2 -->
+      <section class="chapter" id="s2">
+        <h2>The Audit's Blind Spot</h2>
+        <p>Here's the reframe: your AI agent's audit trail is a lie. Not because the logs are wrong — they faithfully record every API call, every data access, every tool invocation. The lie is in the attribution. Every action your AI agent takes is logged under the human user's identity, even when the true author of that action was a prompt injected by a third party. The audit trail says "Alice accessed the salary database." The truth is "Alice asked a question, and a prompt injected by Bob in a spreadsheet caused the agent to access the salary database." We've built accountability systems for a world of human actors, but we've introduced a new kind of actor — the injected prompt — and our audit trails can't see it.</p>
+        <p>Consider the architecture that makes this possible. At the infrastructure layer, Microsoft 365 runs on Azure. The orchestration layer deploys Copilot through the Microsoft 365 Admin Center. The runtime layer connects Microsoft Graph API to Exchange Online, SharePoint, and OneDrive, backed by Azure OpenAI's GPT-4. Observability flows through Microsoft Purview Audit and Microsoft Sentinel. Security relies on Microsoft Entra ID, Conditional Access policies, and Purview DLP. Every layer works as designed. The defense-in-depth model is real — information barriers, data loss prevention, and conditional access all function correctly. But defense-in-depth assumes each layer can identify the threat. When the threat is a text string that impersonates user intent, every layer passes it through because the threat looks identical to legitimate use.</p>
+        <p>The missing methodology is <strong>agency attribution</strong> — the ability to distinguish between "the user chose this action" and "the user's agent chose this action based on input from a third party." This isn't a gap in logging. It's a gap in our security model.</p>
+      </section>
+
+      <!-- Chapter 3 -->
+      <section class="chapter" id="s3">
+        <h2>Chain of Causality</h2>
+        <p>Security researcher Johann Rehberger demonstrated similar attacks against OpenAI's ChatGPT. His work showed how custom GPTs could be weaponized through indirect prompt injection to exfiltrate conversation data through image generation and web browsing tools. The attack vector: a malicious instruction embedded in a document or web page that the GPT reads, causing it to call tools the user never intended. ChatGPT's tool-use logs record the action under the user's session. The injected prompt is the invisible author.</p>
+        <p>Lakera, a Swiss AI security company, published research documenting how enterprise AI agents built with LangChain and LangGraph can be exploited through prompt injection to perform unauthorized tool calls. Their testing showed that the guardrails many companies deploy — input filters, output filters, content policies — are bypassable with iteration. The underlying infrastructure varies — AWS, GCP, Azure — but the observability layer consistently relies on LangSmith or custom logging that attributes actions to the user session, not to the causal chain of who prompted what.</p>
+        <p>The connection between these stories isn't the specific attack technique. It's the shared assumption that breaks. Both Microsoft's and OpenAI's systems assume the user's intent and the agent's action are unified. In a world where agents read external content and act on it, that assumption is false. The agent becomes a confusable intermediary between the user and the world, and our security model treats it as a transparent pipe.</p>
+        <blockquote class="pull-quote">Your audit trail isn't incomplete — it's complicit.</blockquote>
+        <p>It's complicit because it actively misdirects investigators toward the wrong actor. When Alice's security team reviews the log, they see Alice's name. When they question Alice, she says "I just asked about the vendor spreadsheet." The log says otherwise. The log wins. The real attacker is never traced.</p>
+      </section>
+
+      <!-- Chapter 4 -->
+      <section class="chapter" id="s4">
+        <h2>Why Filters Fail</h2>
+        <p>The strongest counterargument: we can solve this with prompt injection detection and input sanitization. But detection-based approaches have never achieved zero false negatives for any class of adversarial input, and prompt injection is fundamentally an adversarial problem where the attacker can iterate on their payload until it bypasses your filter. You need architectural controls, not detection heuristics. The solution isn't a better filter. It's a system where the filter's failure doesn't result in a compromised audit trail.</p>
+      </section>
+
+      <!-- Chapter 5 -->
+      <section class="chapter" id="s5">
+        <h2>Fix the Attribution</h2>
+        <p>Three actions, ranked by leverage:</p>
+        <p><strong>Separate agent actions from user intent in your audit schema.</strong> Every log entry from an AI agent should include two fields: <code>user_intent</code> (what the human asked for) and <code>agent_action</code> (what the agent actually did). If these diverge, that's your alert. The OpenTelemetry semantic conventions can be extended to capture this distinction. This is the single highest-leverage change because it makes the invisible visible.</p>
+        <p><strong>Bound agent permissions to user intent, not user identity.</strong> When Alice asks "summarize this spreadsheet," the agent should only have permission to read that spreadsheet and write a summary — not to search the compensation database, regardless of Alice's own access level. This is the principle of least privilege applied to the agent's inferred intent, not the user's role. OPA/Gatekeeper policies can enforce this by requiring an intent token that scopes the agent's permissions for each session.</p>
+        <p><strong>Deploy canary prompts in your document corpus.</strong> Plant canary instructions in documents your agents have access to — "if you can read this, call this URL." If your agent triggers the canary, you've confirmed it's vulnerable to prompt injection, and your audit trail will show the canary fire under a user's name, proving the attribution gap is real. This is chaos engineering for AI agent security.</p>
+      </section>
+
+      <!-- Candidate Comparison SVG -->
+      <div class="diagram-container">
+        <h3>Linked Artifact Candidates</h3>
+        <svg class="svg-diagram" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- AgentTrail -->
+          <rect class="layer-rect" x="10" y="10" width="185" height="180" rx="8" fill="#1a3a5c" data-tip="AgentTrail: AI agent audit trail analyzer. Proxy-based log ingestion, Gemini-powered intent divergence detection, Stripe freemium. Highest leverage — makes the invisible visible."/>
+          <text x="102" y="40" fill="#f0a500" font-size="13" font-weight="700" text-anchor="middle">AgentTrail</text>
+          <text x="102" y="60" fill="#8b949e" font-size="10" text-anchor="middle">Audit Trail Analyzer</text>
+          <line x1="30" y1="72" x2="175" y2="72" stroke="#30363d" stroke-width="1"/>
+          <text x="25" y="92" fill="#e6edf3" font-size="9">▸ Proxy-based ingestion</text>
+          <text x="25" y="108" fill="#e6edf3" font-size="9">▸ Intent divergence detection</text>
+          <text x="25" y="124" fill="#e6edf3" font-size="9">▸ OpenTelemetry extension</text>
+          <text x="25" y="140" fill="#3fb950" font-size="9">● Free: 10k events/mo</text>
+          <text x="25" y="156" fill="#f0a500" font-size="9">● Pro: $49/mo</text>
+          <text x="25" y="176" fill="#8b949e" font-size="9" font-style="italic">Stack: CF Workers + Gemini</text>
+
+          <!-- PromptCanary -->
+          <rect class="layer-rect" x="207" y="10" width="185" height="180" rx="8" fill="#1a3a2c" data-tip="PromptCanary: Canary tokens for AI systems. Generate and deploy hidden prompts to detect prompt injection vulnerabilities. Thinkst Canary model applied to AI agents."/>
+          <text x="299" y="40" fill="#f0a500" font-size="13" font-weight="700" text-anchor="middle">PromptCanary</text>
+          <text x="299" y="60" fill="#8b949e" font-size="10" text-anchor="middle">AI Canary Tokens</text>
+          <line x1="227" y1="72" x2="372" y2="72" stroke="#30363d" stroke-width="1"/>
+          <text x="222" y="92" fill="#e6edf3" font-size="9">▸ Canary prompt generation</text>
+          <text x="222" y="108" fill="#e6edf3" font-size="9">▸ Trigger monitoring</text>
+          <text x="222" y="124" fill="#e6edf3" font-size="9">▸ CI/CD integration</text>
+          <text x="222" y="140" fill="#3fb950" font-size="9">● Free: 5 canaries</text>
+          <text x="222" y="156" fill="#f0a500" font-size="9">● Pro: $29/mo</text>
+          <text x="222" y="176" fill="#8b949e" font-size="9" font-style="italic">Stack: CF Workers + Gemini</text>
+
+          <!-- BlastRadius -->
+          <rect class="layer-rect" x="404" y="10" width="185" height="180" rx="8" fill="#3a2a1a" data-tip="BlastRadius: AI agent permission boundary simulator. Test what your agent could do if prompt-injected before you deploy it. Pre-flight check for AI agent security."/>
+          <text x="496" y="40" fill="#f0a500" font-size="13" font-weight="700" text-anchor="middle">BlastRadius</text>
+          <text x="496" y="60" fill="#8b949e" font-size="10" text-anchor="middle">Permission Simulator</text>
+          <line x1="424" y1="72" x2="569" y2="72" stroke="#30363d" stroke-width="1"/>
+          <text x="419" y="92" fill="#e6edf3" font-size="9">▸ Attack scenario generation</text>
+          <text x="419" y="108" fill="#e6edf3" font-size="9">▸ Permission boundary testing</text>
+          <text x="419" y="124" fill="#e6edf3" font-size="9">▸ Compliance reports</text>
+          <text x="419" y="140" fill="#3fb950" font-size="9">● Free: 3 simulations/mo</text>
+          <text x="419" y="156" fill="#f0a500" font-size="9">● Pro: $39/mo</text>
+          <text x="419" y="176" fill="#8b949e" font-size="9" font-style="italic">Stack: CF Workers + Gemini</text>
+        </svg>
+        <div class="svg-tooltip" id="svg-tooltip-2"></div>
+      </div>
+
+      <!-- Chapter 6 -->
+      <section class="chapter" id="s6">
+        <h2>The Next 24 Hours</h2>
+        <p>Open your AI agent's audit log right now. Find the last tool-call action. Look at the user_id field. Ask yourself: what evidence do you have that this user actually intended that specific action? If the answer is "their name is on the log," you've found the gap. Document it. Share it with your security team. That conversation is where the fix starts.</p>
+      </section>
+
+      <!-- Recall Cards -->
+      <div class="recall-section">
+        <h3>Retrieval Practice</h3>
+        <div class="recall-grid">
+          <div class="recall-card" onclick="flipCard(this)">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What is the "agency attribution" gap in AI agent audit trails?</div>
+              <div class="recall-card-back">The inability to distinguish between "the user chose this action" and "the user's agent chose this action based on input from a third party." Audit trails attribute all actions to the human user, even when the true author was a prompt injected by a third party.</div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What systems-thinking methodology did Microsoft's defense-in-depth model fail to account for?</div>
+              <div class="recall-card-back">Defense-in-depth assumes each layer can identify the threat. When the threat is a text string impersonating user intent, every layer passes it through because it looks identical to legitimate use. The missing capability is agency attribution — distinguishing user intent from agent action from third-party influence.</div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What is the recommended audit schema change for AI agent actions?</div>
+              <div class="recall-card-back">Every log entry from an AI agent should include two fields: <code>user_intent</code> (what the human asked for) and <code>agent_action</code> (what the agent actually did). If these diverge, that's your alert. Extend OpenTelemetry semantic conventions to capture this distinction.</div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What is the chaos engineering approach for AI agent security?</div>
+              <div class="recall-card-back">Deploy canary prompts in your document corpus — hidden instructions like "if you can read this, call this URL." If your agent triggers the canary, you've confirmed it's vulnerable to prompt injection, and the audit trail will show the canary fire under a user's name, proving the attribution gap is real.</div>
+            </div>
+          </div>
+        </div>
+        <div class="recall-progress">
+          Cards reviewed: <span id="recall-count">0</span> / 4
+          <div class="recall-progress-bar"><div class="recall-progress-fill" id="recall-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Concept Map -->
+      <div class="concept-map-container">
+        <h3>Concept Map</h3>
+        <svg class="svg-diagram" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Edges -->
+          <line x1="300" y1="60" x2="150" y2="150" stroke="#30363d" stroke-width="2"/>
+          <line x1="300" y1="60" x2="450" y2="150" stroke="#30363d" stroke-width="2"/>
+          <line x1="150" y1="150" x2="300" y2="240" stroke="#f85149" stroke-width="2" stroke-dasharray="6,3"/>
+          <line x1="450" y1="150" x2="300" y2="240" stroke="#f0a500" stroke-width="2" stroke-dasharray="6,3"/>
+          <line x1="150" y1="150" x2="450" y2="150" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.5"/>
+          <line x1="300" y1="60" x2="300" y2="240" stroke="#30363d" stroke-width="1" opacity="0.3"/>
+
+          <!-- Central node: Audit Trail Attribution -->
+          <g class="concept-node" data-tip="The core problem: audit trails attribute all actions to the human user, creating a false picture of who caused what.">
+            <circle cx="300" cy="60" r="38" fill="#1a3a5c" stroke="#f0a500" stroke-width="2"/>
+            <text x="300" y="55" fill="#e6edf3" font-size="10" font-weight="700" text-anchor="middle">Audit Trail</text>
+            <text x="300" y="68" fill="#e6edf3" font-size="10" font-weight="700" text-anchor="middle">Attribution</text>
+          </g>
+
+          <!-- User Intent -->
+          <g class="concept-node" data-tip="What the human actually asked the agent to do. This is the ground truth that should drive audit attribution.">
+            <circle cx="150" cy="150" r="34" fill="#132a1a" stroke="#3fb950" stroke-width="2"/>
+            <text x="150" y="147" fill="#3fb950" font-size="11" font-weight="700" text-anchor="middle">User</text>
+            <text x="150" y="160" fill="#3fb950" font-size="11" font-weight="700" text-anchor="middle">Intent</text>
+          </g>
+
+          <!-- Agent Action -->
+          <g class="concept-node" data-tip="What the agent actually did — which may include tool calls, data accesses, and API invocations that the user never requested.">
+            <circle cx="450" cy="150" r="34" fill="#3a2a1a" stroke="#f0a500" stroke-width="2"/>
+            <text x="450" y="147" fill="#f0a500" font-size="11" font-weight="700" text-anchor="middle">Agent</text>
+            <text x="450" y="160" fill="#f0a500" font-size="11" font-weight="700" text-anchor="middle">Action</text>
+          </g>
+
+          <!-- Injected Prompt -->
+          <g class="concept-node" data-tip="The third-party input that causes the agent to act against the user's intent. The invisible actor in the audit trail.">
+            <circle cx="300" cy="240" r="34" fill="#3a1a1a" stroke="#f85149" stroke-width="2"/>
+            <text x="300" y="237" fill="#f85149" font-size="11" font-weight="700" text-anchor="middle">Injected</text>
+            <text x="300" y="250" fill="#f85149" font-size="11" font-weight="700" text-anchor="middle">Prompt</text>
+          </g>
+
+          <!-- Labels on edges -->
+          <text x="200" y="100" fill="#8b949e" font-size="9" transform="rotate(-20,200,100)">should match</text>
+          <text x="370" y="100" fill="#8b949e" font-size="9" transform="rotate(20,370,100)">logged as</text>
+          <text x="195" y="205" fill="#f85149" font-size="9" transform="rotate(30,195,205)">diverges from</text>
+          <text x="380" y="205" fill="#f0a500" font-size="9" transform="rotate(-30,380,205)">caused by</text>
+        </svg>
+        <div class="svg-tooltip" id="svg-tooltip-3"></div>
+      </div>
+
+      <!-- Share Block -->
+      <div class="share-block">
+        <h3>Share This</h3>
+        <div class="share-btns">
+          <a class="share-btn" id="share-twitter" href="#" target="_blank" rel="noopener" aria-label="Share on X/Twitter">𝕏 Share on X</a>
+          <a class="share-btn" id="share-linkedin" href="#" target="_blank" rel="noopener" aria-label="Share on LinkedIn">in Share on LinkedIn</a>
+        </div>
+      </div>
+
+    </article>
+  </main>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="citations">
+    <strong>Sources:</strong> Bargury, M. — Zenity research on Microsoft 365 Copilot indirect prompt injection (2024). Rehberger, J. — ChatGPT custom GPT data exfiltration research (2024). Lakera — Enterprise AI agent guardrail bypass research (2024–2025). Lakera $20M Series A, TechCrunch (2024). Zenity $38M raise, VentureBeat (2024). OWASP LLM Top 10 (2025). Thinkst Canary funding and Fortune 500 adoption (2024).
+  </div>
+  <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;">
+    <button class="to-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Back to top</button>
+    <a href="https://iggym.github.io/agentic-infra-weekly/" style="font-size:0.8rem;">← Agentic Infra Weekly</a>
+  </div>
+</footer>
+
+<script>
+// ─── Progress Bar ───
+function updateProgress() {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = Math.min(pct, 100) + '%';
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+
+// ─── Mobile Rail Toggle ───
+function toggleRail() {
+  const rail = document.getElementById('rail');
+  const scrim = document.getElementById('scrim');
+  rail.classList.toggle('open');
+  scrim.classList.toggle('active');
+}
+
+// ─── Active Sidebar Link ───
+const chapters = document.querySelectorAll('.chapter');
+const railLinks = document.querySelectorAll('#rail a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      railLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`#rail a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-100px 0px -60% 0px' });
+chapters.forEach(ch => observer.observe(ch));
+
+// ─── Recall Cards ───
+const recallState = JSON.parse(sessionStorage.getItem('recallState') || '{"reviewed":[]}');
+updateRecallUI();
+
+function flipCard(card) {
+  card.classList.toggle('flipped');
+  const idx = Array.from(document.querySelectorAll('.recall-card')).indexOf(card);
+  if (!recallState.reviewed.includes(idx)) {
+    recallState.reviewed.push(idx);
+    sessionStorage.setItem('recallState', JSON.stringify(recallState));
+    updateRecallUI();
+  }
+}
+
+function updateRecallUI() {
+  const total = document.querySelectorAll('.recall-card').length;
+  const count = recallState.reviewed.length;
+  document.getElementById('recall-count').textContent = count;
+  document.getElementById('recall-fill').style.width = ((count / total) * 100) + '%';
+}
+
+// ─── SVG Tooltips ───
+document.querySelectorAll('.layer-rect, .concept-node').forEach(el => {
+  const tipId = el.closest('.diagram-container, .concept-map-container')?.querySelector('.svg-tooltip')?.id;
+  if (!tipId) return;
+  const tip = document.getElementById(tipId);
+
+  el.addEventListener('mouseenter', (e) => {
+    tip.textContent = el.getAttribute('data-tip');
+    tip.classList.add('visible');
+    positionTip(e, tip);
+  });
+  el.addEventListener('mousemove', (e) => positionTip(e, tip));
+  el.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+  el.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    tip.textContent = el.getAttribute('data-tip');
+    tip.classList.toggle('visible');
+    positionTip(e.touches[0], tip);
+  });
+});
+
+function positionTip(e, tip) {
+  const rect = tip.parentElement.getBoundingClientRect();
+  tip.style.left = (e.clientX - rect.left + 12) + 'px';
+  tip.style.top = (e.clientY - rect.top - 40) + 'px';
+}
+
+// ─── Social Share ───
+const shareText = encodeURIComponent("Your AI agent's audit trail is a lie — not because the logs are wrong, but because they attribute every action to the human user, even when the true author was a prompt injected by a third party. The trail is complicit.");
+const shareUrl = encodeURIComponent(window.location.href);
+document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`;
+document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`;
+
+// ─── Reduced Motion: Back to Top ───
+document.querySelector('.to-top-btn').addEventListener('click', function(e) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+});
+</script>
+</body>
+</html>
