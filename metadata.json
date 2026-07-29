@@ -108,6 +108,15 @@
   "research_window": "2026-01-19 to 2026-04-26"
 },
   {
+  "week": 18,
+  "date": "2026-05-04",
+  "filename": "articles/the-paved-path-illusion.html",
+  "title": "The Paved Path Illusion",
+  "topic": "Platform Standardization",
+  "bold_reframe": "Standardization isn't about building paved paths; it's about eradicating the off-ramps.",
+  "research_window": "2026-02-09 to 2026-05-03"
+},
+  {
     "week": 14,
     "date": "2026-07-29",
     "filename": "articles/mind-the-gap.html",
