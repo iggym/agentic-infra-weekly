@@ -1,407 +1,1290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agentic Infra Weekly</title>
-  <style>
-    :root {
-      --bg: #090d16;
-      --card-bg: #111827;
-      --border: #1f2937;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #3b82f6;
-      --accent-glow: rgba(59, 130, 246, 0.15);
-      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --max-w: 1100px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Infra Weekly — Systems Intelligence Briefing</title>
+<meta name="description" content="A weekly briefing on production agentic systems, infrastructure, and reliability.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090b10;
+    --bg-raised: #0e1119;
+    --surface: #12161f;
+    --surface-hover: #171c28;
+    --border: #232a38;
+    --border-strong: #33405a;
+    --text: #eef1f6;
+    --text-muted: #9aa4b8;
+    --text-faint: #62697a;
+    --accent: #4f8cff;
+    --accent-strong: #7cabff;
+    --accent-glow: rgba(79, 140, 255, 0.14);
+    --signal: #f5a623;
+    --signal-glow: rgba(245, 166, 35, 0.12);
+    --ok: #34d399;
+    --danger: #f26d6d;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+    --max-w: 1180px;
+    --radius: 10px;
+    --gap: 1.25rem;
+    --row-gap: 1.5rem;
+  }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-main);
-      line-height: 1.6;
-      padding: 0 1.5rem 4rem 1.5rem;
-    }
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f7fa;
+    --bg-raised: #ffffff;
+    --surface: #ffffff;
+    --surface-hover: #f0f2f7;
+    --border: #dde1ea;
+    --border-strong: #c3cadb;
+    --text: #10141d;
+    --text-muted: #4b5468;
+    --text-faint: #838da3;
+    --accent: #2f66d9;
+    --accent-strong: #1e4fbf;
+    --accent-glow: rgba(47, 102, 217, 0.09);
+    --signal: #b6720a;
+    --signal-glow: rgba(182, 114, 10, 0.09);
+  }
 
-    header {
-      max-width: var(--max-w);
-      margin: 3rem auto 2.5rem auto;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2rem;
-    }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
 
-    .brand-tag {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
-    }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+    padding: 0 1.5rem 5rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
 
-    h1 {
-      font-size: clamp(2rem, 4vw, 2.75rem);
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      line-height: 1.15;
-    }
+  a { color: inherit; }
 
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      margin-top: 0.75rem;
-      max-width: 700px;
-    }
+  /* Skip link */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--accent);
+    color: #06101f;
+    font-weight: 700;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0 0 8px 0;
+    z-index: 100;
+    text-decoration: none;
+  }
+  .skip-link:focus {
+    left: 0;
+  }
 
-    main {
-      max-width: var(--max-w);
-      margin: 0 auto;
-    }
+  :focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 
-    /* Controls Section */
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      justify-content: space-between;
-      align-items: center;
-    }
+  /* ---------- Header ---------- */
+  header.site-header {
+    max-width: var(--max-w);
+    margin: 2.75rem auto 0;
+  }
 
-    .search-box {
-      flex: 1;
-      min-width: 280px;
-    }
+  .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 1.1rem;
+  }
 
-    .search-box input {
-      width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+  .statusbar .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 20%, transparent);
+    flex-shrink: 0;
+  }
 
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
+  h1 {
+    font-size: clamp(2rem, 4vw, 2.7rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+    margin: 0;
+  }
 
-    .tag-filters {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
+  p.subtitle {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin: 0.8rem 0 0;
+    max-width: 640px;
+  }
 
-    .tag-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+  .header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.75rem;
+    margin-top: 1.75rem;
+  }
 
-    .tag-btn:hover, .tag-btn.active {
-      color: var(--text);
-      border-color: var(--accent);
-      background: var(--accent-glow);
-    }
+  .prefs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
 
-    /* Featured / Latest Section */
-    .featured-card {
-      background: linear-gradient(135deg, var(--card-bg) 0%, rgba(17, 24, 39, 0.5) 100%);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px;
-      padding: 2rem;
-      margin-bottom: 3rem;
-      position: relative;
-    }
+  .icon-toggle-group {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+  }
 
-    .featured-badge {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      background: var(--accent);
-      color: #fff;
-      padding: 0.2rem 0.6rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      font-weight: bold;
-      margin-bottom: 1rem;
-    }
+  .icon-toggle-group button {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 0.5rem 0.7rem;
+    cursor: pointer;
+    min-height: 36px;
+  }
 
-    .featured-card h2 {
-      font-size: 1.75rem;
-      margin-bottom: 0.75rem;
-    }
+  .icon-toggle-group button + button {
+    border-left: 1px solid var(--border);
+  }
 
-    .featured-card h2 a {
-      color: var(--text);
-      text-decoration: none;
-    }
+  .icon-toggle-group button[aria-pressed="true"] {
+    background: var(--accent-glow);
+    color: var(--accent-strong);
+  }
 
-    .featured-card h2 a:hover {
-      color: var(--accent);
-    }
+  .icon-toggle-group button:hover {
+    color: var(--text);
+  }
 
-    /* Grid Layout */
-    .grid-header {
-      font-size: 1.25rem;
-      margin-bottom: 1.25rem;
-      font-weight: 600;
-    }
+  main {
+    max-width: var(--max-w);
+    margin: 0 auto;
+  }
 
-    .articles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
+  /* ---------- Briefing hero ---------- */
+  #briefing-container { margin-top: 2.25rem; }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, border-color 0.2s;
-    }
+  .briefing {
+    background: linear-gradient(160deg, var(--bg-raised) 0%, var(--surface) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2.25rem 2.25rem;
+    position: relative;
+    overflow: hidden;
+  }
 
-    .card:hover {
-      transform: translateY(-2px);
-      border-color: #374151;
-    }
+  .briefing::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), transparent 70%);
+  }
 
-    .card-meta {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-    }
+  .briefing-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
 
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      line-height: 1.3;
-    }
+  .briefing-badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: #06101f;
+    padding: 0.25rem 0.55rem;
+    border-radius: 5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
 
-    .card-title a {
-      color: var(--text);
-      text-decoration: none;
-    }
+  .briefing h2 {
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    line-height: 1.25;
+    margin: 0 0 0.6rem;
+  }
 
-    .card-title a:hover {
-      color: var(--accent);
-    }
+  .briefing h2 a {
+    text-decoration: none;
+    color: var(--text);
+  }
+  .briefing h2 a:hover { color: var(--accent-strong); }
 
-    .card-reframe {
-      color: var(--text-muted);
-      font-size: 0.925rem;
-      margin-bottom: 1.25rem;
-      flex-grow: 1;
-    }
+  .briefing p.thesis {
+    color: var(--text-muted);
+    font-size: 1.02rem;
+    max-width: 66ch;
+    margin: 0 0 1.1rem;
+  }
 
-    .card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      border-top: 1px solid var(--border);
-      padding-top: 1rem;
-      margin-top: auto;
-    }
+  .why-matters {
+    display: flex;
+    gap: 0.6rem;
+    background: var(--signal-glow);
+    border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--border));
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--text);
+    max-width: 66ch;
+    margin-bottom: 1.4rem;
+  }
+  .why-matters strong { color: var(--signal); white-space: nowrap; }
 
-    .topic-pill {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--accent);
-      background: var(--accent-glow);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-    }
+  .briefing-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 
-    .read-link {
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-    }
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: #06101f;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 0.65rem 1.15rem;
+    border-radius: 7px;
+    font-size: 0.92rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-primary:hover { background: var(--accent-strong); }
 
-    .read-link:hover {
-      color: var(--accent);
-    }
+  .topic-pill {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent-strong);
+    background: var(--accent-glow);
+    padding: 0.3rem 0.55rem;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
 
-    .empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--text-muted);
-    }
+  /* ---------- Reader path / topic chips ---------- */
+  .reader-path {
+    margin-top: 2.25rem;
+  }
 
-    footer {
-      max-width: var(--max-w);
-      margin: 4rem auto 0 auto;
-      border-top: 1px solid var(--border);
-      padding-top: 2rem;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.875rem;
-    }
+  .reader-path h2, .toolbar-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin: 0 0 0.65rem;
+  }
 
-    footer a { color: var(--text-muted); }
-  </style>
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.45rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.86rem;
+    cursor: pointer;
+    min-height: 38px;
+  }
+
+  .chip .count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+  }
+
+  .chip:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .chip[aria-pressed="true"] {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .chip[aria-pressed="true"] .count { color: var(--accent-strong); }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 0;
+  }
+
+  .search-wrap { flex: 1; min-width: 260px; }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.7rem 3.6rem 0.7rem 2.4rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    min-height: 44px;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+
+  .search-box .search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+
+  .search-box kbd {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    background: var(--bg-raised);
+  }
+
+  .search-box .clear-btn {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 5px;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    display: none;
+    min-height: 30px;
+  }
+
+  .sort-wrap select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-height: 44px;
+    font-family: var(--font-sans);
+  }
+
+  .result-summary {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 1.1rem;
+  }
+  .result-summary .reset-link {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 0;
+  }
+
+  /* ---------- Grid ---------- */
+  .grid-header {
+    font-size: 1.05rem;
+    margin: 1.75rem 0 1.1rem;
+    font-weight: 700;
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--row-gap) var(--gap);
+  }
+
+  .articles-grid[data-density="compact"] {
+    gap: 0.85rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .articles-grid[data-density="compact"] .card {
+    padding: 1rem 1.1rem;
+  }
+
+  .card:hover {
+    border-color: var(--border-strong);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card:hover { transform: translateY(-2px); }
+  }
+
+  .card-meta {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--text-faint);
+    margin-bottom: 0.55rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .card-title {
+    font-size: 1.12rem;
+    font-weight: 700;
+    margin: 0 0 0.6rem;
+    line-height: 1.32;
+  }
+
+  .card-title a {
+    text-decoration: none;
+    color: var(--text);
+  }
+  .card-title a:hover { color: var(--accent-strong); }
+
+  .articles-grid[data-density="compact"] .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-reframe {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1.1rem;
+    flex-grow: 1;
+  }
+
+  .articles-grid[data-density="compact"] .card-reframe {
+    display: none;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    margin-top: auto;
+  }
+
+  .articles-grid[data-density="compact"] .card-footer {
+    padding-top: 0.6rem;
+  }
+
+  .read-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.86rem;
+  }
+  .read-link:hover { color: var(--accent-strong); }
+
+  mark {
+    background: var(--signal-glow);
+    color: var(--signal);
+    border-radius: 3px;
+    padding: 0 0.1em;
+  }
+
+  /* ---------- States ---------- */
+  .state-panel {
+    text-align: center;
+    padding: 3.5rem 1.5rem;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .state-panel h3 {
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+  }
+
+  .state-panel p { margin: 0 0 1rem; font-size: 0.92rem; }
+
+  .state-panel button, .state-panel .reset-link {
+    background: var(--accent);
+    color: #06101f;
+    border: none;
+    font-weight: 700;
+    padding: 0.6rem 1.1rem;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+
+  .spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--accent);
+    margin: 0 auto 1rem;
+    animation: spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation: none; border-top-color: var(--border); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .skeleton {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2.25rem;
+  }
+  .skeleton-line {
+    height: 0.9rem;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border) 25%, var(--border-strong) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    margin-bottom: 0.8rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-line { animation: none; }
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  noscript .state-panel {
+    margin-top: 2rem;
+  }
+
+  footer.site-footer {
+    max-width: var(--max-w);
+    margin: 4rem auto 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1.75rem;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+  }
+  footer.site-footer a { color: var(--text-muted); }
+
+  @media (max-width: 560px) {
+    body { padding: 0 1rem 4rem; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .briefing { padding: 1.5rem; }
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="brand-tag">Weekly Systems Intelligence</div>
-    <h1>Agentic Infra Weekly</h1>
-    <p class="subtitle">Perspective-shifting technical articles on production agentic systems, infrastructure, and reliability — generated with zero-input smart automation.</p>
-  </header>
+<a href="#main" class="skip-link">Skip to main content</a>
 
-  <main>
-    <div id="latest-container"></div>
-
-    <div class="controls">
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Search by title, story, or keyword..." />
+<header class="site-header">
+  <div class="statusbar">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="statusbar-text">Systems intelligence briefing</span>
+  </div>
+  <h1>Agentic Infra Weekly</h1>
+  <p class="subtitle">Weekly technical briefings on production agentic systems, infrastructure, and reliability — for engineers running this stuff for real.</p>
+  <div class="header-bottom">
+    <div class="prefs">
+      <div class="icon-toggle-group" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="dark" aria-pressed="true">Dark</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-choice="system" aria-pressed="false">Auto</button>
       </div>
-      <div class="tag-filters" id="tag-filters">
-        <button class="tag-btn active" data-topic="all">All</button>
+      <div class="icon-toggle-group" role="group" aria-label="Card density">
+        <button type="button" data-density-choice="comfortable" aria-pressed="true">Comfortable</button>
+        <button type="button" data-density-choice="compact" aria-pressed="false">Compact</button>
       </div>
     </div>
+  </div>
+</header>
 
-    <div class="grid-header" id="grid-title">Archive</div>
-    <div class="articles-grid" id="grid-container"></div>
-    <div id="empty-state" class="empty-state" style="display: none;">No articles match your search criteria.</div>
-  </main>
+<main id="main">
 
-  <footer>
-    <p>Published via <a href="https://github.com/iggym/agentic-infra-weekly">iggym/agentic-infra-weekly</a> on GitHub Pages.</p>
-  </footer>
+  <section id="briefing-container" aria-label="Latest briefing"></section>
 
-  <script>
-    let articles = [];
-    let selectedTopic = 'all';
+  <section class="reader-path" aria-labelledby="reader-path-heading">
+    <h2 id="reader-path-heading">Start here — browse by topic</h2>
+    <div class="chip-row" id="tag-filters" role="group" aria-label="Filter articles by topic"></div>
+  </section>
 
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch('metadata.json')
-        .then(res => res.json())
-        .then(data => {
-          articles = data.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setupFilters();
-          render();
-        })
-        .catch(err => {
-          console.error('Error fetching metadata:', err);
-          document.getElementById('grid-container').innerHTML = `<div class="empty-state">Unable to load metadata.json. Ensure file exists in root.</div>`;
-        });
+  <section class="toolbar" aria-label="Search and sort articles">
+    <div class="search-wrap">
+      <div class="toolbar-label" id="search-label-text">Search articles</div>
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="search-input" aria-labelledby="search-label-text" placeholder="Search by title, topic, week, or summary…" autocomplete="off">
+        <kbd id="search-kbd">/</kbd>
+        <button type="button" class="clear-btn" id="clear-search" aria-label="Clear search">Clear</button>
+      </div>
+    </div>
+    <div class="sort-wrap">
+      <label class="toolbar-label" for="sort-select">Sort</label>
+      <select id="sort-select">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="topic">Topic (A–Z)</option>
+        <option value="week">Week number</option>
+      </select>
+    </div>
+  </section>
 
-      document.getElementById('search-input').addEventListener('input', render);
+  <p class="result-summary" id="result-summary" role="status" aria-live="polite"></p>
+
+  <h2 class="grid-header" id="grid-title">Archive</h2>
+  <div id="grid-region" aria-live="polite">
+    <div class="articles-grid" id="grid-container" data-density="comfortable"></div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Published via <a href="https://github.com/iggym/agentic-infra-weekly">iggym/agentic-infra-weekly</a> on GitHub Pages.</p>
+</footer>
+
+<noscript>
+  <div class="state-panel" style="max-width: 1180px; margin: 2rem auto;">
+    <h3>JavaScript is required</h3>
+    <p>This archive loads and filters issues dynamically. Enable JavaScript to browse Agentic Infra Weekly, or view issues directly on <a href="https://github.com/iggym/agentic-infra-weekly">GitHub</a>.</p>
+  </div>
+</noscript>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------
+  var allArticles = [];      // raw, validated articles
+  var topicCounts = {};      // topic -> count
+  var state = {
+    query: '',
+    topic: 'all',
+    sort: 'newest'
+  };
+
+  var els = {
+    briefingContainer: document.getElementById('briefing-container'),
+    tagFilters: document.getElementById('tag-filters'),
+    searchInput: document.getElementById('search-input'),
+    clearSearch: document.getElementById('clear-search'),
+    sortSelect: document.getElementById('sort-select'),
+    resultSummary: document.getElementById('result-summary'),
+    gridTitle: document.getElementById('grid-title'),
+    gridContainer: document.getElementById('grid-container'),
+    statusbarText: document.getElementById('statusbar-text')
+  };
+
+  // ---------------------------------------------------------------
+  // Preferences: theme + density (localStorage)
+  // ---------------------------------------------------------------
+  var THEME_KEY = 'aiw:theme';
+  var DENSITY_KEY = 'aiw:density';
+
+  function applyTheme(choice) {
+    var root = document.documentElement;
+    if (choice === 'system') {
+      root.removeAttribute('data-theme');
+      var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      if (prefersLight) root.setAttribute('data-theme', 'light');
+    } else if (choice === 'light') {
+      root.setAttribute('data-theme', 'light');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+    }
+    document.querySelectorAll('[data-theme-choice]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === choice));
     });
+    try { localStorage.setItem(THEME_KEY, choice); } catch (e) {}
+  }
 
-    function setupFilters() {
-      const topics = [...new Set(articles.map(a => a.topic).filter(Boolean))];
-      const filterContainer = document.getElementById('tag-filters');
-      
-      topics.forEach(topic => {
-        const btn = document.createElement('button');
-        btn.className = 'tag-btn';
-        btn.dataset.topic = topic;
-        btn.textContent = topic;
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          selectedTopic = topic;
-          render();
-        });
-        filterContainer.appendChild(btn);
-      });
+  function applyDensity(choice) {
+    els.gridContainer.setAttribute('data-density', choice);
+    document.querySelectorAll('[data-density-choice]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.densityChoice === choice));
+    });
+    try { localStorage.setItem(DENSITY_KEY, choice); } catch (e) {}
+  }
 
-      document.querySelector('[data-topic="all"]').addEventListener('click', (e) => {
-        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        selectedTopic = 'all';
-        render();
+  (function initPrefs() {
+    var savedTheme = 'dark';
+    var savedDensity = 'comfortable';
+    try { savedTheme = localStorage.getItem(THEME_KEY) || 'dark'; } catch (e) {}
+    try { savedDensity = localStorage.getItem(DENSITY_KEY) || 'comfortable'; } catch (e) {}
+    applyTheme(savedTheme);
+    applyDensity(savedDensity);
+  })();
+
+  document.querySelectorAll('[data-theme-choice]').forEach(function (btn) {
+    btn.addEventListener('click', function () { applyTheme(btn.dataset.themeChoice); });
+  });
+  document.querySelectorAll('[data-density-choice]').forEach(function (btn) {
+    btn.addEventListener('click', function () { applyDensity(btn.dataset.densityChoice); });
+  });
+
+  // ---------------------------------------------------------------
+  // URL state (search/topic/sort are shareable)
+  // ---------------------------------------------------------------
+  function readStateFromURL() {
+    var params = new URLSearchParams(window.location.search);
+    state.query = params.get('q') || '';
+    state.topic = params.get('topic') || 'all';
+    state.sort = params.get('sort') || 'newest';
+    els.searchInput.value = state.query;
+    els.sortSelect.value = state.sort;
+  }
+
+  function writeStateToURL() {
+    var params = new URLSearchParams();
+    if (state.query) params.set('q', state.query);
+    if (state.topic && state.topic !== 'all') params.set('topic', state.topic);
+    if (state.sort && state.sort !== 'newest') params.set('sort', state.sort);
+    var qs = params.toString();
+    var newUrl = window.location.pathname + (qs ? '?' + qs : '');
+    window.history.replaceState(null, '', newUrl);
+  }
+
+  // ---------------------------------------------------------------
+  // Safety helpers — metadata.json is untrusted input
+  // ---------------------------------------------------------------
+  function isSafeUrl(raw) {
+    if (typeof raw !== 'string' || !raw.trim()) return false;
+    var trimmed = raw.trim();
+    // Reject anything with an explicit dangerous scheme.
+    if (/^\s*(javascript|data|vbscript):/i.test(trimmed)) return false;
+    // Allow relative paths (article files) or http(s) absolute URLs.
+    if (/^https?:\/\//i.test(trimmed)) return true;
+    if (/^[a-z0-9_\-./]+\.html?$/i.test(trimmed)) return true;
+    if (/^[a-z0-9_\-./]+$/i.test(trimmed)) return true;
+    return false;
+  }
+
+  function cleanText(val, fallback) {
+    if (typeof val === 'string' && val.trim()) return val.trim();
+    return fallback;
+  }
+
+  function parseDate(val) {
+    if (!val) return null;
+    var d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDate(d) {
+    if (!d) return 'Date unknown';
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function validateArticle(raw, idx) {
+    if (!raw || typeof raw !== 'object') return null;
+    var filename = raw.filename;
+    if (!isSafeUrl(filename)) return null; // an article we cannot safely link to is dropped
+    var title = cleanText(raw.title, 'Untitled issue');
+    var topic = cleanText(raw.topic, 'Uncategorized');
+    var week = cleanText(raw.week, '');
+    var bold_reframe = cleanText(raw.bold_reframe, '');
+    var dateObj = parseDate(raw.date);
+    return {
+      _id: 'a' + idx,
+      title: title,
+      filename: filename.trim(),
+      topic: topic,
+      week: week,
+      bold_reframe: bold_reframe,
+      dateObj: dateObj,
+      dateDisplay: formatDate(dateObj),
+      dateRaw: cleanText(raw.date, '')
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // DOM builders — no innerHTML with untrusted data
+  // ---------------------------------------------------------------
+  function highlightInto(container, text, query) {
+    if (!query) { container.textContent = text; return; }
+    var lower = text.toLowerCase();
+    var q = query.toLowerCase();
+    var idx = lower.indexOf(q);
+    if (idx === -1) { container.textContent = text; return; }
+    var pos = 0;
+    while (idx !== -1) {
+      if (idx > pos) container.appendChild(document.createTextNode(text.slice(pos, idx)));
+      var mark = document.createElement('mark');
+      mark.textContent = text.slice(idx, idx + query.length);
+      container.appendChild(mark);
+      pos = idx + query.length;
+      idx = lower.indexOf(q, pos);
+    }
+    if (pos < text.length) container.appendChild(document.createTextNode(text.slice(pos)));
+  }
+
+  function buildCard(item, query) {
+    var card = document.createElement('article');
+    card.className = 'card';
+
+    var meta = document.createElement('div');
+    meta.className = 'card-meta';
+    var weekSpan = document.createElement('span');
+    weekSpan.textContent = item.week ? 'Week ' + item.week : '';
+    var dateSpan = document.createElement('span');
+    dateSpan.textContent = item.dateDisplay;
+    meta.appendChild(weekSpan);
+    meta.appendChild(dateSpan);
+
+    var h3 = document.createElement('h3');
+    h3.className = 'card-title';
+    var a = document.createElement('a');
+    a.href = item.filename;
+    highlightInto(a, item.title, query);
+    h3.appendChild(a);
+
+    var p = document.createElement('p');
+    p.className = 'card-reframe';
+    highlightInto(p, item.bold_reframe || 'No summary available for this issue.', query);
+
+    var footer = document.createElement('div');
+    footer.className = 'card-footer';
+    var pill = document.createElement('span');
+    pill.className = 'topic-pill';
+    pill.textContent = item.topic;
+    var readLink = document.createElement('a');
+    readLink.className = 'read-link';
+    readLink.href = item.filename;
+    readLink.textContent = 'Read: ' + (item.title.length > 40 ? item.title.slice(0, 40) + '…' : item.title);
+    footer.appendChild(pill);
+    footer.appendChild(readLink);
+
+    card.appendChild(meta);
+    card.appendChild(h3);
+    card.appendChild(p);
+    card.appendChild(footer);
+    return card;
+  }
+
+  function buildBriefing(item) {
+    var wrap = document.createElement('div');
+    wrap.className = 'briefing';
+
+    var meta = document.createElement('div');
+    meta.className = 'briefing-meta';
+    var badge = document.createElement('span');
+    badge.className = 'briefing-badge';
+    badge.textContent = 'Latest briefing';
+    meta.appendChild(badge);
+    if (item.week) {
+      var w = document.createElement('span');
+      w.textContent = 'Week ' + item.week;
+      meta.appendChild(w);
+    }
+    var d = document.createElement('span');
+    d.textContent = item.dateDisplay;
+    meta.appendChild(d);
+
+    var h2 = document.createElement('h2');
+    var a = document.createElement('a');
+    a.href = item.filename;
+    a.textContent = item.title;
+    h2.appendChild(a);
+
+    var thesis = document.createElement('p');
+    thesis.className = 'thesis';
+    thesis.textContent = item.bold_reframe || 'This issue has no summary yet — open it to read the full briefing.';
+
+    var actions = document.createElement('div');
+    actions.className = 'briefing-actions';
+    var cta = document.createElement('a');
+    cta.className = 'btn-primary';
+    cta.href = item.filename;
+    cta.textContent = 'Read this issue';
+    var pill = document.createElement('span');
+    pill.className = 'topic-pill';
+    pill.textContent = item.topic;
+    actions.appendChild(cta);
+    actions.appendChild(pill);
+
+    wrap.appendChild(meta);
+    wrap.appendChild(h2);
+    if (item.bold_reframe) {
+      var why = document.createElement('div');
+      why.className = 'why-matters';
+      var strong = document.createElement('strong');
+      strong.textContent = 'Why it matters:';
+      why.appendChild(strong);
+      var span = document.createElement('span');
+      span.textContent = item.bold_reframe;
+      why.appendChild(span);
+      wrap.appendChild(why);
+    } else {
+      wrap.appendChild(thesis);
+    }
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
+  function buildSkeleton() {
+    var wrap = document.createElement('div');
+    wrap.className = 'skeleton';
+    for (var i = 0; i < 3; i++) {
+      var line = document.createElement('div');
+      line.className = 'skeleton-line';
+      line.style.width = i === 0 ? '30%' : i === 1 ? '70%' : '90%';
+      wrap.appendChild(line);
+    }
+    var sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.textContent = 'Loading latest briefing…';
+    wrap.appendChild(sr);
+    return wrap;
+  }
+
+  function buildStatePanel(opts) {
+    var panel = document.createElement('div');
+    panel.className = 'state-panel';
+    if (opts.spinner) {
+      var sp = document.createElement('div');
+      sp.className = 'spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      panel.appendChild(sp);
+    }
+    var h3 = document.createElement('h3');
+    h3.textContent = opts.title;
+    var p = document.createElement('p');
+    p.textContent = opts.body;
+    panel.appendChild(h3);
+    panel.appendChild(p);
+    if (opts.actionLabel && opts.onAction) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = opts.actionLabel;
+      btn.addEventListener('click', opts.onAction);
+      panel.appendChild(btn);
+    }
+    return panel;
+  }
+
+  // ---------------------------------------------------------------
+  // Filtering / sorting
+  // ---------------------------------------------------------------
+  function getFiltered() {
+    var q = state.query.trim().toLowerCase();
+    return allArticles.filter(function (item) {
+      var matchesTopic = state.topic === 'all' || item.topic === state.topic;
+      if (!matchesTopic) return false;
+      if (!q) return true;
+      var haystack = [item.title, item.topic, item.week, item.dateRaw, item.bold_reframe]
+        .join(' ').toLowerCase();
+      return haystack.indexOf(q) !== -1;
+    });
+  }
+
+  function getSorted(list) {
+    var copy = list.slice();
+    switch (state.sort) {
+      case 'oldest':
+        copy.sort(function (a, b) { return (a.dateObj ? a.dateObj.getTime() : 0) - (b.dateObj ? b.dateObj.getTime() : 0); });
+        break;
+      case 'topic':
+        copy.sort(function (a, b) { return a.topic.localeCompare(b.topic) || sortByDateDesc(a, b); });
+        break;
+      case 'week':
+        copy.sort(function (a, b) { return (parseFloat(b.week) || 0) - (parseFloat(a.week) || 0); });
+        break;
+      case 'newest':
+      default:
+        copy.sort(sortByDateDesc);
+    }
+    return copy;
+  }
+
+  function sortByDateDesc(a, b) {
+    return (b.dateObj ? b.dateObj.getTime() : 0) - (a.dateObj ? a.dateObj.getTime() : 0);
+  }
+
+  // ---------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------
+  function renderBriefing() {
+    var newestSorted = getSorted(allArticles.slice());
+    els.briefingContainer.innerHTML = '';
+    var showBriefing = state.topic === 'all' && !state.query.trim() && newestSorted.length > 0;
+    if (showBriefing) {
+      els.briefingContainer.appendChild(buildBriefing(newestSorted[0]));
+    }
+  }
+
+  function renderFilters() {
+    els.tagFilters.innerHTML = '';
+    var allBtn = makeChip('all', 'All', allArticles.length);
+    els.tagFilters.appendChild(allBtn);
+    Object.keys(topicCounts).sort().forEach(function (topic) {
+      els.tagFilters.appendChild(makeChip(topic, topic, topicCounts[topic]));
+    });
+  }
+
+  function makeChip(topicKey, label, count) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.setAttribute('aria-pressed', String(state.topic === topicKey));
+    var labelSpan = document.createElement('span');
+    labelSpan.textContent = label;
+    var countSpan = document.createElement('span');
+    countSpan.className = 'count';
+    countSpan.textContent = count;
+    btn.appendChild(labelSpan);
+    btn.appendChild(countSpan);
+    btn.addEventListener('click', function () {
+      state.topic = topicKey;
+      writeStateToURL();
+      renderAll();
+    });
+    return btn;
+  }
+
+  function renderGrid() {
+    var filtered = getSorted(getFiltered());
+    var query = state.query.trim();
+
+    els.gridContainer.innerHTML = '';
+
+    if (allArticles.length === 0) return; // error/empty already shown elsewhere
+
+    if (filtered.length === 0) {
+      var panel = buildStatePanel({
+        title: 'No articles match your filters',
+        body: query
+          ? 'No results for "' + query + '"' + (state.topic !== 'all' ? ' in ' + state.topic : '') + '. Try a different term or clear your filters.'
+          : 'No articles in this topic yet.',
+        actionLabel: 'Reset search and filters',
+        onAction: resetFilters
       });
+      els.gridContainer.appendChild(panel);
+      return;
     }
 
-    function render() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const latestContainer = document.getElementById('latest-container');
-      const gridContainer = document.getElementById('grid-container');
-      const emptyState = document.getElementById('empty-state');
+    filtered.forEach(function (item) {
+      els.gridContainer.appendChild(buildCard(item, query));
+    });
+  }
 
-      const filtered = articles.filter(item => {
-        const matchesTopic = selectedTopic === 'all' || item.topic === selectedTopic;
-        const matchesQuery = !query || 
-          item.title.toLowerCase().includes(query) || 
-          (item.bold_reframe && item.bold_reframe.toLowerCase().includes(query)) ||
-          (item.topic && item.topic.toLowerCase().includes(query));
-        return matchesTopic && matchesQuery;
-      });
+  function renderSummary() {
+    var filtered = getFiltered();
+    var parts = [];
+    parts.push(filtered.length + ' article' + (filtered.length === 1 ? '' : 's'));
+    if (state.topic !== 'all') parts.push('filtered by ' + state.topic);
+    if (state.query.trim()) parts.push('search: "' + state.query.trim() + '"');
+    var text = parts.join(' · ');
+    els.resultSummary.textContent = '';
+    els.resultSummary.appendChild(document.createTextNode(text));
+    if (state.topic !== 'all' || state.query.trim()) {
+      els.resultSummary.appendChild(document.createTextNode('  '));
+      var resetBtn = document.createElement('button');
+      resetBtn.type = 'button';
+      resetBtn.className = 'reset-link';
+      resetBtn.textContent = 'Reset';
+      resetBtn.addEventListener('click', resetFilters);
+      els.resultSummary.appendChild(resetBtn);
+    }
+  }
 
-      // Render Featured (Latest) if no query/filter applied
-      if (filtered.length > 0 && selectedTopic === 'all' && !query) {
-        const latest = filtered[0];
-        latestContainer.innerHTML = `
-          <div class="featured-card">
-            <span class="featured-badge">Latest Edition — Week ${latest.week || ''}</span>
-            <h2><a href="${latest.filename}">${latest.title}</a></h2>
-            <p class="card-reframe">${latest.bold_reframe || ''}</p>
-            <div class="card-footer">
-              <span class="topic-pill">${latest.topic}</span>
-              <a href="${latest.filename}" class="read-link">Read Article &rarr;</a>
-            </div>
-          </div>
-        `;
-        latestContainer.style.display = 'block';
-      } else {
-        latestContainer.innerHTML = '';
-        latestContainer.style.display = 'none';
-      }
+  function resetFilters() {
+    state.query = '';
+    state.topic = 'all';
+    els.searchInput.value = '';
+    writeStateToURL();
+    renderAll();
+    els.searchInput.focus();
+  }
 
-      // Render Grid
-      const gridItems = (selectedTopic === 'all' && !query) ? filtered.slice(1) : filtered;
-      gridContainer.innerHTML = '';
+  function renderAll() {
+    document.querySelectorAll('.chip').forEach(function (c) {}); // no-op placeholder for readability
+    renderFilters();
+    renderBriefing();
+    renderSummary();
+    renderGrid();
+    els.clearSearch.style.display = state.query ? 'inline-block' : 'none';
+  }
 
-      if (gridItems.length === 0 && filtered.length === 0) {
-        emptyState.style.display = 'block';
-      } else {
-        emptyState.style.display = 'none';
-        gridItems.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div>
-              <div class="card-meta">
-                <span>Week ${item.week || ''}</span>
-                <span>${item.date}</span>
-              </div>
-              <h3 class="card-title"><a href="${item.filename}">${item.title}</a></h3>
-              <p class="card-reframe">${item.bold_reframe || ''}</p>
-            </div>
-            <div class="card-footer">
-              <span class="topic-pill">${item.topic}</span>
-              <a href="${item.filename}" class="read-link">Read &rarr;</a>
-            </div>
-          `;
-          gridContainer.appendChild(card);
+  // ---------------------------------------------------------------
+  // Load metadata.json
+  // ---------------------------------------------------------------
+  function showLoading() {
+    els.briefingContainer.innerHTML = '';
+    els.briefingContainer.appendChild(buildSkeleton());
+    els.resultSummary.textContent = 'Loading issues…';
+  }
+
+  function showError(err) {
+    els.briefingContainer.innerHTML = '';
+    els.resultSummary.textContent = '';
+    els.gridContainer.innerHTML = '';
+    var panel = buildStatePanel({
+      title: "Couldn't load the archive",
+      body: 'metadata.json failed to load or was invalid. Check that the file exists in the site root and is valid JSON.',
+      actionLabel: 'Try again',
+      onAction: function () { loadMetadata(); }
+    });
+    els.gridContainer.appendChild(panel);
+    console.error('Agentic Infra Weekly: failed to load metadata.json', err);
+  }
+
+  function loadMetadata() {
+    showLoading();
+    fetch('metadata.json', { cache: 'no-cache' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!Array.isArray(data)) throw new Error('metadata.json is not an array');
+        var validated = data.map(validateArticle).filter(Boolean);
+        allArticles = validated;
+        topicCounts = {};
+        validated.forEach(function (item) {
+          topicCounts[item.topic] = (topicCounts[item.topic] || 0) + 1;
         });
+        els.statusbarText.textContent = validated.length + ' issue' + (validated.length === 1 ? '' : 's') + ' published';
+        if (validated.length === 0) {
+          els.gridContainer.innerHTML = '';
+          els.gridContainer.appendChild(buildStatePanel({
+            title: 'No issues published yet',
+            body: 'Once metadata.json contains valid entries, they will appear here automatically.'
+          }));
+          els.briefingContainer.innerHTML = '';
+          els.resultSummary.textContent = '0 articles';
+          return;
+        }
+        readStateFromURL();
+        renderAll();
+      })
+      .catch(showError);
+  }
+
+  // ---------------------------------------------------------------
+  // Controls wiring
+  // ---------------------------------------------------------------
+  var searchDebounce;
+  els.searchInput.addEventListener('input', function () {
+    clearTimeout(searchDebounce);
+    var val = els.searchInput.value;
+    searchDebounce = setTimeout(function () {
+      state.query = val;
+      writeStateToURL();
+      renderAll();
+    }, 120);
+  });
+
+  els.searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (els.searchInput.value) {
+        els.searchInput.value = '';
+        state.query = '';
+        writeStateToURL();
+        renderAll();
+      } else {
+        els.searchInput.blur();
       }
     }
-  </script>
+  });
+
+  els.clearSearch.addEventListener('click', function () {
+    els.searchInput.value = '';
+    state.query = '';
+    writeStateToURL();
+    renderAll();
+    els.searchInput.focus();
+  });
+
+  els.sortSelect.addEventListener('change', function () {
+    state.sort = els.sortSelect.value;
+    writeStateToURL();
+    renderAll();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== els.searchInput) {
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      e.preventDefault();
+      els.searchInput.focus();
+    }
+  });
+
+  window.addEventListener('popstate', function () {
+    readStateFromURL();
+    renderAll();
+  });
+
+  loadMetadata();
+})();
+</script>
 </body>
 </html>
