@@ -25,5 +25,23 @@
     "topic": "Observability",
     "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
     "research_window": "2025-03-10 to 2025-03-16"
-  }
+  },
+  {
+  "week": 21,
+  "date": "2024-05-21",
+  "filename": "articles/automating-the-outage.html",
+  "title": "Automating the Outage",
+  "topic": "Kubernetes & DevOps",
+  "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
+  "research_window": "2024-03-25 to 2024-03-31"
+},
+  {
+  "week": 21,
+  "date": "2024-05-22",
+  "filename": "articles/watching-the-wrong-dial.html",
+  "title": "Watching the Wrong Dial",
+  "topic": "Observability",
+  "bold_reframe": "A syntactically valid response containing a semantic failure is a 500-level error for your business logic; observability must shift from infrastructure uptime to semantic integrity.",
+  "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
+}
 ]
