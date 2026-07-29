@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Tail Wags the Model | Agentic Infra Weekly</title>
+    <style>
+        :root {
+            --max: 660px;
+            --bg: #0f1115;
+            --text: #e4e6eb;
+            --muted: #8b949e;
+            --accent: #58a6ff;
+            --accent2: #f778ba;
+            --card-bg: #161b22;
+            --border: #30363d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        /* Progress & Topbar */
+        #progress {
+            position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            z-index: 1000;
+        }
+        #topbar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(15, 17, 21, 0.8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #topbar a { color: var(--text); text-decoration: none; font-weight: bold; }
+        #topbar .meta { color: var(--muted); font-size: 0.85rem; }
+        .hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+
+        /* Layout */
+        .wrap {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            max-width: calc(var(--max) + 260px);
+            margin: 0 auto;
+            gap: 2rem;
+            padding: 2rem 1rem;
+        }
+        #rail {
+            position: sticky; top: 100px;
+            height: fit-content;
+            counter-reset: rail-counter;
+        }
+        #rail a {
+            display: block; padding: 0.5rem 0;
+            color: var(--muted); text-decoration: none;
+            font-size: 0.9rem; border-left: 2px solid transparent;
+            padding-left: 1rem; margin-bottom: 0.5rem;
+        }
+        #rail a::before {
+            counter-increment: rail-counter;
+            content: counter(rail-counter) ". ";
+            color: var(--accent);
+            font-weight: bold;
+        }
+        #rail a:hover { color: var(--text); border-color: var(--accent); }
+
+        main {
+            max-width: var(--max);
+            margin: 0 auto;
+        }
+        
+        /* Typography */
+        h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.1; margin-bottom: 1rem; }
+        h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        p { margin-bottom: 1.2rem; }
+        blockquote {
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            background: var(--card-bg);
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-style: italic;
+        }
+        
+        /* Components */
+        .spectrum {
+            height: 40px; border-radius: 6px; margin: 1.5rem 0;
+            background: linear-gradient(90deg, var(--muted) 0%, var(--accent) 50%, var(--accent2) 100%);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1rem; font-size: 0.8rem; color: #000; font-weight: bold;
+        }
+        
+        .chapter { scroll-margin-top: 100px; }
+
+        /* SVG Diagrams */
+        .svg-container { margin: 2rem 0; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; background: var(--card-bg); }
+        .svg-container text { fill: var(--text); font-size: 12px; }
+        .svg-container .node { cursor: pointer; transition: fill 0.2s; }
+        .svg-container .node:hover { fill: var(--accent); }
+        .svg-container .tooltip { opacity: 0; transition: opacity 0.2s; fill: var(--accent2); font-size: 10px; }
+        .svg-container .node:hover + .tooltip { opacity: 1; }
+
+        /* Recall Cards */
+        .card-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2rem 0; }
+        .flip-card { perspective: 1000px; height: 120px; cursor: pointer; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 1rem;
+            border: 1px solid var(--border);
+        }
+        .flip-card-front { background: var(--card-bg); color: var(--accent); font-weight: bold; }
+        .flip-card-back { background: var(--accent); color: #000; transform: rotateY(180deg); }
+
+        /* Footer */
+        footer {
+            margin-top: 3rem; padding: 2rem; text-align: center;
+            border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 1rem; align-items: center;
+        }
+        .share-block { display: flex; gap: 1rem; }
+        .share-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text); text-decoration: none; border-radius: 4px; transition: background 0.2s; }
+        .share-btn:hover { background: var(--card-bg); }
+        footer small { color: var(--muted); max-width: var(--max); line-height: 1.4; }
+
+        /* Responsive & Drawer */
+        #scrim {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 90; display: none;
+        }
+        @media (max-width: 880px) {
+            .wrap { grid-template-columns: 1fr; }
+            #rail {
+                position: fixed; top: 0; left: -250px; width: 250px;
+                height: 100%; background: var(--bg); padding: 2rem 1rem;
+                transition: left 0.3s ease; z-index: 95; border-right: 1px solid var(--border);
+            }
+            #rail.open { left: 0; }
+            #scrim.open { display: block; }
+            .hamburger { display: block; }
+            .card-container { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="progress"></div>
+    
+    <header id="topbar">
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <button class="hamburger" id="hamburger">☰</button>
+            <a href="https://iggym.github.io/agentic-infra-weekly/">Agentic Infra Weekly</a>
+        </div>
+        <div class="meta">
+            <span id="breadcrumb">Week 16, 2026</span> • <span id="reading-time">5 min read</span>
+        </div>
+    </header>
+
+    <div id="scrim"></div>
+
+    <div class="wrap">
+        <aside id="rail">
+            <a href="#s1">Opening Scene</a>
+            <a href="#s2">The Harness Over Model</a>
+            <a href="#s3">The Hidden Connections</a>
+            <a href="#s4">Credibility and Nuance</a>
+            <a href="#s5">Narrative Agency</a>
+            <a href="#s6">Closing Call to Action</a>
+        </aside>
+
+        <main>
+            <article>
+                <h1>The Tail Wags the Model</h1>
+                
+                <div class="spectrum">
+                    <span>Raw Model</span>
+                    <span>Intelligent Routing Harness</span>
+                </div>
+
+                <section class="chapter" id="s1">
+                    <h2>Opening Scene</h2>
+                    <p>In late 2023, developers building AI agents on LangChain hit a wall. What worked in a Jupyter notebook collapsed in production. API costs exploded, latency crept into tens of seconds, and chains broke silently. The issue wasn't the intelligence of OpenAI's GPT-4; the issue was the plumbing. Developers were passing massive, unoptimized context windows back and forth on every single call. The model was smart enough to handle it, but the architecture surrounding the model was financially and computationally unsustainable.</p>
+                </section>
+
+                <section class="chapter" id="s2">
+                    <h2>The Harness Over Model</h2>
+                    <p>We are obsessed with model intelligence. We benchmark reasoning, agonize over context window sizes, and chase the latest parameter counts. But if you are responsible for putting AI into production, the model is the least important part of your architecture. The routing harness dictates whether you scale or collapse.</p>
+                    <p>GitLab discovered this when building Duo, their AI DevOps assistant. They realized that hardcoding calls to the most advanced model for every task created latency spikes and cost overruns. They built an abstraction layer to route requests dynamically. Simple code suggestions went to faster, cheaper models; complex logic went to the heavyweights. Shopify built Sidekick, an AI merchant assistant, with a similar philosophy. They didn't trust the model to behave; they built a strict tool-calling sandbox where the AI could only execute predefined, sanitized Ruby functions, rolled out to merchants via canary deployments.</p>
+                </section>
+
+                <section class="chapter" id="s3">
+                    <h2>The Hidden Connections</h2>
+                    <p>We currently treat AI models as standalone applications. In reality, an LLM is a CPU. You would never deploy a microservice without an API gateway, rate limiting, and caching. Yet, teams routinely deploy LLMs without semantic caching, dynamic routing, or circuit breakers.</p>
+                    <p>The LangChain production crisis proved this. Teams bypassed the framework's defaults and implemented strict semantic caching in Redis. By catching semantically similar prompts before they ever hit the LLM, they achieved idempotency. The cost dropped, latency vanished, and the system stabilized.</p>
+                    <blockquote>Your model is just a passenger; the routing harness is the driver.</blockquote>
+                    
+                    <div class="svg-container">
+                        <svg width="100%" height="150" viewBox="0 0 400 150">
+                            <!-- Concept Map -->
+                            <line x1="200" y1="75" x2="100" y2="30" stroke="var(--border)" stroke-width="2"/>
+                            <line x1="200" y1="75" x2="300" y2="30" stroke="var(--border)" stroke-width="2"/>
+                            <line x1="200" y1="75" x2="100" y2="120" stroke="var(--border)" stroke-width="2"/>
+                            <line x1="200" y1="75" x2="300" y2="120" stroke="var(--border)" stroke-width="2"/>
+                            
+                            <circle class="node" cx="200" cy="75" r="20" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="2"/>
+                            <text x="200" y="80" text-anchor="middle">Harness</text>
+                            
+                            <circle class="node" cx="100" cy="30" r="15" fill="var(--card-bg)" stroke="var(--muted)" stroke-width="2"/>
+                            <text x="100" y="35" text-anchor="middle">Router</text>
+                            
+                            <circle class="node" cx="300" cy="30" r="15" fill="var(--card-bg)" stroke="var(--muted)" stroke-width="2"/>
+                            <text x="300" y="35" text-anchor="middle">Cache</text>
+                            
+                            <circle class="node" cx="100" cy="120" r="15" fill="var(--card-bg)" stroke="var(--muted)" stroke-width="2"/>
+                            <text x="100" y="125" text-anchor="middle">Policy</text>
+                            
+                            <circle class="node" cx="300" cy="120" r="15" fill="var(--card-bg)" stroke="var(--muted)" stroke-width="2"/>
+                            <text x="300" y="125" text-anchor="middle">Model</text>
+                        </svg>
+                        <p style="font-size:0.85rem; color:var(--muted); text-align:center;">Hover over nodes to explore the architecture.</p>
+                    </div>
+                </section>
+
+                <section class="chapter" id="s4">
+                    <h2>Credibility and Nuance</h2>
+                    <p>GitLab's use of circuit breakers ensured that if Anthropic Claude or Google Vertex AI timed out, the core application remained stable. Shopify's use of progressive delivery meant a hallucination only affected a 1% cohort of merchants, not the entire platform. LangChain's community pivot to semantic caching in Redis directly addressed the token-cost explosion.</p>
+                    <p>The strongest counterargument is that the model's reasoning capability is the bottleneck, and a great harness cannot save a dumb model. While true for edge cases, a brilliant model behind a fragile harness still times out and bankrupts you. In production, reliability always outpaces raw capability.</p>
+                    
+                    <div class="card-container">
+                        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">What is Idempotency Design in AI?</div>
+                                <div class="flip-card-back">Using semantic caching to ensure identical or similar prompts return cached results, preventing duplicate costly LLM calls.</div>
+                            </div>
+                        </div>
+                        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">Why use Circuit Breakers?</div>
+                                <div class="flip-card-back">To fail gracefully if an LLM provider times out, ensuring the core application remains stable and responsive.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="chapter" id="s5">
+                    <h2>Narrative Agency</h2>
+                    <p><strong>1. Implement Semantic Caching:</strong> Stop sending identical or similar prompts to your LLM. Use tools like <em>RouteRight AI</em> to intercept and cache requests, achieving idempotency and slashing costs.</p>
+                    <p><strong>2. Enforce Tool-Calling Sandboxes:</strong> If your agent takes action, it must operate under least privilege. Wrap your tools in policy engines like <em>AgentPolicy</em> to prevent catastrophic hallucinations.</p>
+                    <p><strong>3. Route Dynamically:</strong> Not every task needs a frontier model. Route simple parsing to Groq's Llama models and save Gemini Pro or GPT-4 for complex reasoning.</p>
+                    <p><strong>4. Automate Prompt Evals:</strong> Use tools like <em>EvalGuard</em> in your CI/CD pipeline to catch prompt regressions before they reach production.</p>
+                </section>
+
+                <section class="chapter" id="s6">
+                    <h2>Closing Call to Action</h2>
+                    <p>Within the next 24 hours, map your top three most frequent LLM prompts and route them through a semantic cache. You will immediately see your latency drop and your cost curve flatten.</p>
+                </section>
+            </article>
+
+            <footer>
+                <div class="share-block">
+                    <a href="#" class="share-btn" id="share-twitter">Share on X</a>
+                    <a href="#" class="share-btn" id="share-linkedin">Share on LinkedIn</a>
+                </div>
+                <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="share-btn">Back to Top</button>
+                <small>
+                    <strong>Citations:</strong> GitLab Duo Engineering Blog; Shopify Engineering Blog; LangChain HN Discussions (2024).<br>
+                    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+                </small>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Progress Bar
+        const progress = document.getElementById('progress');
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercent = (scrollTop / scrollHeight) * 100;
+            progress.style.width = scrollPercent + '%';
+        });
+
+        // Mobile Drawer
+        const hamburger = document.getElementById('hamburger');
+        const rail = document.getElementById('rail');
+        const scrim = document.getElementById('scrim');
+        
+        hamburger.addEventListener('click', () => {
+            rail.classList.toggle('open');
+            scrim.classList.toggle('open');
+        });
+        scrim.addEventListener('click', () => {
+            rail.classList.remove('open');
+            scrim.classList.remove('open');
+        });
+
+        // Social Share
+        const shareText = "The model is just a passenger; the routing harness is the driver. Stop obsessing over LLM benchmarks and start building semantic caches.";
+        const url = encodeURIComponent(window.location.href);
+        document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${url}`;
+        document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+    </script>
+</body>
+</html>
