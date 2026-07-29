@@ -117,6 +117,24 @@
   "research_window": "2026-02-09 to 2026-05-03"
 },
   {
+  "week": 17,
+  "date": "2026-04-27",
+  "filename": "articles/paving-over-the-portal.html",
+  "title": "Paving Over the Portal",
+  "topic": "Developer Enablement",
+  "bold_reframe": "The developer portal is the new ticket queue — real enablement means engineers never visit your platform UI; the most productive platform teams build pavement that disappears into existing workflows.",
+  "research_window": "2026-01-26 to 2026-05-03"
+},
+  {
+  "week": 16,
+  "date": "2026-04-13",
+  "filename": "articles/the-tail-wags-the-model.html",
+  "title": "The Tail Wags the Model",
+  "topic": "AI Platform Architecture: model routing, cost/latency tradeoffs, 'harness over model'",
+  "bold_reframe": "The model is the least important part of your AI architecture; the routing harness dictates whether you scale or collapse.",
+  "research_window": "2023-11-01 to 2024-03-31"
+},
+  {
     "week": 14,
     "date": "2026-07-29",
     "filename": "articles/mind-the-gap.html",
