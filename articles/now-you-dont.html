@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Now You Don't — Agentic Infra Weekly</title>
+<style>
+:root{
+  --bg:#090b10;--surface:#12151e;--card:#181c28;--border:#272d3f;
+  --text:#e2e4ea;--muted:#6e7590;--accent:#00d4aa;--accent2:#4ade80;
+  --accent-dim:#00d4aa22;--danger:#ff6b6b;--warn:#fbbf24;--radius:10px;--max:660px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:17px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:9999;transition:width .15s}
+#topbar{position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(9,11,16,.78);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px}
+#topbar nav{display:flex;align-items:center;gap:12px;font-size:.85rem}
+#topbar .home-link{font-weight:700;color:var(--accent)}
+#topbar .sep{color:var(--muted)}
+#topbar .reading-time{color:var(--muted);font-size:.78rem}
+#hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:4px 8px}
+.wrap{display:grid;grid-template-columns:220px 1fr;gap:40px;max-width:calc(var(--max) + 260px);margin:0 auto;padding:32px 24px 80px}
+#rail{position:sticky;top:100px;align-self:start;counter-reset:chapter}
+#rail ol{list-style:none;padding:0}
+#rail li{counter-increment:chapter;padding:6px 0;font-size:.85rem}
+#rail li::before{content:counter(chapter) ".";color:var(--accent);font-weight:700;margin-right:6px}
+#rail a{color:var(--muted);transition:color .2s}
+#rail a:hover,#rail a.active{color:var(--text);text-decoration:none}
+main{max-width:var(--max);min-width:0}
+main h1{font-size:clamp(2.1rem,5vw,3.1rem);font-weight:800;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:1rem;margin-bottom:36px}
+.chapter{scroll-margin-top:80px;margin-bottom:48px}
+.chapter h2{font-size:1.4rem;font-weight:800;margin-bottom:16px;color:var(--text)}
+.chapter p{margin-bottom:14px}
+blockquote.pull{border-left:3px solid var(--accent);padding:16px 20px;margin:28px 0;background:var(--accent-dim);border-radius:0 var(--radius) var(--radius) 0;font-size:1.15rem;font-weight:700;line-height:1.5}
+.spectrum{margin:36px 0;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.spectrum-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+.spectrum-bar{height:28px;border-radius:6px;background:linear-gradient(90deg,#ff6b6b 0%,#fbbf24 35%,#4ade80 65%,#00d4aa 100%);position:relative;margin-bottom:8px}
+.spectrum-marker{position:absolute;top:-4px;width:2px;height:36px;background:var(--text);border-radius:1px;transition:left .4s}
+.spectrum-marker-label{position:absolute;top:40px;font-size:.7rem;color:var(--muted);white-space:nowrap;transform:translateX(-50%)}
+.spectrum-legend{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:36px}
+.svg-diagram{margin:28px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto}
+.svg-diagram svg{width:100%;height:auto;display:block}
+.svg-diagram .layer-rect{cursor:pointer;transition:opacity .2s,filter .2s;rx:6}
+.svg-diagram .layer-rect:hover,.svg-diagram .layer-rect:focus{opacity:.85;filter:brightness(1.25)}
+.svg-diagram .layer-label{font-size:12px;fill:var(--text);pointer-events:none;font-weight:700}
+.svg-diagram .layer-detail{font-size:10px;fill:var(--muted);pointer-events:none;opacity:0;transition:opacity .3s}
+.svg-diagram .layer.hovered .layer-detail{opacity:1}
+.svg-diagram .diag-title{font-size:13px;fill:var(--accent);font-weight:700;text-anchor:middle}
+.action-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;transition:border-color .2s}
+.action-card:hover{border-color:var(--accent)}
+.action-card h3{font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--accent)}
+.action-card p{font-size:.9rem;color:var(--muted);margin-bottom:0}
+.recall-cards{display:grid;gap:12px;margin:28px 0}
+.recall-card{perspective:800px;min-height:130px;cursor:pointer}
+.recall-inner{position:relative;width:100%;min-height:130px;transition:transform .5s;transform-style:preserve-3d}
+.recall-card.flipped .recall-inner{transform:rotateX(180deg)}
+.recall-front,.recall-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);padding:16px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.88rem}
+.recall-front{background:var(--card);border:1px solid var(--border)}
+.recall-back{background:var(--accent-dim);border:1px solid var(--accent);transform:rotateX(180deg);color:var(--text)}
+.recall-progress{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.concept-map{margin:28px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto}
+.concept-map svg{width:100%;height:auto}
+.concept-map .node{cursor:pointer;transition:r .2s,fill .2s,stroke-width .2s}
+.concept-map .node:hover{fill:var(--accent)}
+.concept-map .edge{stroke:var(--border);stroke-width:1.5;fill:none}
+.concept-map .node-label{font-size:11px;fill:var(--text);pointer-events:none;text-anchor:middle}
+.share-block{margin:36px 0;display:flex;gap:10px;flex-wrap:wrap}
+.share-block a{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);font-size:.85rem;font-weight:600;transition:opacity .2s}
+.share-block a:hover{opacity:.85;text-decoration:none}
+.share-x{background:#1d1d1d;border:1px solid #333;color:#e2e4ea}
+.share-li{background:#0a3d6e;border:1px solid #0e5a9e;color:#e2e4ea}
+.cmp-chart{margin:28px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto}
+.cmp-chart svg{width:100%;height:auto;display:block}
+.cmp-chart .bar-bg{fill:var(--surface);rx:4}
+.cmp-chart .bar-fill{rx:4;transition:width .5s}
+.cmp-chart .bar-label{font-size:10px;fill:var(--muted);pointer-events:none}
+.cmp-chart .bar-val{font-size:10px;fill:var(--text);pointer-events:none;font-weight:700}
+.cmp-chart .col-head{font-size:11px;fill:var(--accent);font-weight:700;text-anchor:middle}
+.cmp-chart .row-head{font-size:10px;fill:var(--text);font-weight:600;text-anchor:end}
+.cmp-chart .row-group{cursor:pointer;transition:opacity .2s}
+.cmp-chart .row-group:hover{opacity:.85}
+.cmp-chart .row-group .row-tooltip{opacity:0;transition:opacity .3s}
+.cmp-chart .row-group:hover .row-tooltip{opacity:1}
+footer{border-top:1px solid var(--border);padding:32px 24px;max-width:calc(var(--max) + 260px);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:24px}
+footer .citations{flex:1;min-width:240px;font-size:.78rem;color:var(--muted);line-height:1.6}
+footer .citations strong{color:var(--text)}
+footer .footer-links{display:flex;flex-direction:column;gap:6px;font-size:.85rem;align-items:flex-end}
+#scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
+@media(max-width:880px){
+  .wrap{grid-template-columns:1fr;padding:20px 16px 60px}
+  #rail{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--surface);z-index:95;transform:translateX(-100%);transition:transform .3s;padding:60px 20px 20px;overflow-y:auto}
+  #rail.open{transform:translateX(0)}
+  #hamburger{display:block}
+  #scrim.open{display:block}
+  footer{flex-direction:column}
+  footer .footer-links{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <nav>
+    <button id="hamburger" aria-label="Menu">&#9776;</button>
+    <a href="https://iggym.github.io/agentic-infra-weekly/" class="home-link">Agentic Infra Weekly</a>
+    <span class="sep">/</span>
+    <span style="color:var(--muted);font-size:.85rem">Week 11, 2026</span>
+  </nav>
+  <span class="reading-time">8 min read</span>
+</header>
+
+<div id="scrim"></div>
+
+<div class="wrap">
+  <aside id="rail">
+    <ol>
+      <li><a href="#s0">Opening</a></li>
+      <li><a href="#s1">Missing the Forest</a></li>
+      <li><a href="#s2">Connect the Dots</a></li>
+      <li><a href="#s3">The Flip Side</a></li>
+      <li><a href="#s4">Your Move</a></li>
+      <li><a href="#s5">First Things First</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <article>
+      <header>
+        <h1>Now You Don't</h1>
+        <p class="subtitle">Why your developer platform's self-service is actually a new bottleneck — and the teams that made it disappear</p>
+      </header>
+
+      <!-- ====== OPENING ====== -->
+      <section class="chapter" id="s0">
+        <p>Sometime in 2019, Spotify's platform team looked at a number that made them uncomfortable: new engineers were taking weeks to deploy their first service. Not days. Weeks. The problem wasn't a lack of tools — Spotify had hundreds of those. The problem was that no one could find them. Documentation lived in Confluence wikis, GitHub READMEs, and the heads of senior engineers who were tired of answering the same questions. The platform team's answer was Backstage — a unified developer portal that would become one of the most-adopted open-source projects in the CNCF ecosystem. But the detail that gets less airtime is what happened after: Backstage became another place engineers had to go. The portal solved discovery. It didn't solve cognitive load. Engineers still had to visit the portal, search for the right template, fill out a form, and then return to their IDE to actually build something. The catalog was a better map. But engineers still had to navigate it themselves.</p>
+      </section>
+
+      <!-- ====== MISSING THE FOREST ====== -->
+      <section class="chapter" id="s1">
+        <h2>Missing the Forest</h2>
+        <p>Here's the pattern that connects Spotify's Backstage, Netflix's Paved Road, and the DORA team's 2024 findings: platform teams are optimizing for the wrong metric. They measure adoption — how many engineers visited the portal, how many templates were clicked, how many services are registered. They should measure absence. The best platform is the one nobody visits, because it's already woven into the work they were doing anyway. Every "self-service portal" is a confession that your platform is a destination, not a utility. You don't visit your electrical grid. You don't log into your water supply. The infrastructure that works best is the infrastructure you never think about.</p>
+
+        <div class="spectrum">
+          <div class="spectrum-label">Platform Model Spectrum</div>
+          <div class="spectrum-bar">
+            <div class="spectrum-marker" style="left:15%"><div class="spectrum-marker-label">Spotify 2019</div></div>
+            <div class="spectrum-marker" style="left:50%"><div class="spectrum-marker-label">Typical Portal</div></div>
+            <div class="spectrum-marker" style="left:88%"><div class="spectrum-marker-label">Netflix Paved Road</div></div>
+          </div>
+          <div class="spectrum-legend">
+            <span>Portal-Centric (visible)</span>
+            <span>Invisible Platform (absent)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== CONNECT THE DOTS ====== -->
+      <section class="chapter" id="s2">
+        <h2>Connect the Dots</h2>
+        <p>Netflix understood this earlier than most. Their Paved Road initiative — documented extensively in their engineering blog and conference talks — didn't build a portal. It built a set of opinionated defaults that made the right thing the easiest thing. When you created a new microservice at Netflix, the default option was already production-ready, observable, and resilient. The paved path wasn't a page you visited; it was the path you were already on unless you deliberately chose to leave it. The critical architectural decision was making platform capabilities available through the tools engineers already used — their IDE, their CLI, their CI pipeline — rather than through a separate web interface. Their circuit-breaker pattern and chaos engineering practice ensured that the paved path was also the most reliable path. The easiest thing and the right thing were the same thing.</p>
+
+        <!-- Spotify Architecture SVG -->
+        <div class="svg-diagram" role="img" aria-label="Spotify Backstage architecture layers — hover or tap each layer for details">
+          <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg">
+            <text x="300" y="24" class="diag-title">Spotify / Backstage Architecture</text>
+            <g class="layer" data-layer="infra">
+              <rect x="10" y="34" width="580" height="56" class="layer-rect" fill="#1e3a5f" tabindex="0" role="button" aria-label="Infrastructure layer — hover for details"/>
+              <text x="300" y="58" class="layer-label" text-anchor="middle">Infrastructure: Google Kubernetes Engine (GKE)</text>
+              <text x="300" y="74" class="layer-detail" text-anchor="middle">Regional clusters on Google Cloud, auto-scaling node pools, VPC-native networking</text>
+            </g>
+            <g class="layer" data-layer="orch">
+              <rect x="10" y="96" width="580" height="56" class="layer-rect" fill="#1e3d2f" tabindex="0" role="button" aria-label="Orchestration layer — hover for details"/>
+              <text x="300" y="120" class="layer-label" text-anchor="middle">Orchestration: GitHub Actions + Terraform + Custom CD</text>
+              <text x="300" y="136" class="layer-detail" text-anchor="middle">GitOps workflows, infrastructure-as-code, automated deployment pipelines</text>
+            </g>
+            <g class="layer" data-layer="runtime">
+              <rect x="10" y="158" width="580" height="56" class="layer-rect" fill="#2a1e3d" tabindex="0" role="button" aria-label="Runtime layer — hover for details"/>
+              <text x="300" y="182" class="layer-label" text-anchor="middle">Runtime: Backstage + PostgreSQL + Cloud Storage</text>
+              <text x="300" y="198" class="layer-detail" text-anchor="middle">Service catalog, software templates, TechDocs, search index</text>
+            </g>
+            <g class="layer" data-layer="obs">
+              <rect x="10" y="220" width="580" height="56" class="layer-rect" fill="#3d2a1e" tabindex="0" role="button" aria-label="Observability layer — hover for details"/>
+              <text x="300" y="244" class="layer-label" text-anchor="middle">Observability: Datadog + PagerDuty</text>
+              <text x="300" y="260" class="layer-detail" text-anchor="middle">Metrics, traces, dashboards, alerting, incident management</text>
+            </g>
+            <g class="layer" data-layer="sec">
+              <rect x="10" y="282" width="580" height="56" class="layer-rect" fill="#3d1e2a" tabindex="0" role="button" aria-label="Security layer — hover for details"/>
+              <text x="300" y="306" class="layer-label" text-anchor="middle">Security: Google Cloud IAM + Custom RBAC</text>
+              <text x="300" y="322" class="layer-detail" text-anchor="middle">Role-based access, service accounts, policy enforcement in Backstage</text>
+            </g>
+          </svg>
+        </div>
+
+        <p>The DORA 2024 Accelerate State of DevOps Report confirmed this pattern with data spanning hundreds of organizations. Teams that treated their internal platform as a product — with real SLAs, dedicated product managers, and user feedback loops — saw significantly higher developer productivity than teams that treated platforms as internal tooling projects. But the report's subtler finding is the one that matters: the productive teams didn't measure success by portal adoption. They measured it by cognitive load reduction. The portal was a means, not an end, and many teams had confused the two.</p>
+
+        <p>Spotify's own evolution reflects this. After open-sourcing Backstage, they continued investing in CLI tools and IDE plugins that made the portal's capabilities available without visiting the web interface. The portal was the catalog. The real platform was the automation that made the catalog unnecessary for most daily workflows.</p>
+
+        <!-- Netflix Architecture SVG -->
+        <div class="svg-diagram" role="img" aria-label="Netflix Paved Road architecture layers — hover or tap each layer for details">
+          <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg">
+            <text x="300" y="24" class="diag-title">Netflix / Paved Road Architecture</text>
+            <g class="layer" data-layer="infra">
+              <rect x="10" y="34" width="580" height="56" class="layer-rect" fill="#1e3a5f" tabindex="0" role="button" aria-label="Infrastructure layer — hover for details"/>
+              <text x="300" y="58" class="layer-label" text-anchor="middle">Infrastructure: AWS (EC2 + EKS)</text>
+              <text x="300" y="74" class="layer-detail" text-anchor="middle">Amazon Web Services, auto-scaling groups, multi-region deployment</text>
+            </g>
+            <g class="layer" data-layer="orch">
+              <rect x="10" y="96" width="580" height="56" class="layer-rect" fill="#1e3d2f" tabindex="0" role="button" aria-label="Orchestration layer — hover for details"/>
+              <text x="300" y="120" class="layer-label" text-anchor="middle">Orchestration: Spinnaker</text>
+              <text x="300" y="136" class="layer-detail" text-anchor="middle">Built by Netflix, open-sourced; canary deployments, bake &amp; deploy pipelines</text>
+            </g>
+            <g class="layer" data-layer="runtime">
+              <rect x="10" y="158" width="580" height="56" class="layer-rect" fill="#2a1e3d" tabindex="0" role="button" aria-label="Runtime layer — hover for details"/>
+              <text x="300" y="182" class="layer-label" text-anchor="middle">Runtime: Eureka + Zuul + Hystrix + Kafka + Cassandra</text>
+              <text x="300" y="198" class="layer-detail" text-anchor="middle">Service discovery, API gateway, circuit breaker, messaging, data store, EVCache</text>
+            </g>
+            <g class="layer" data-layer="obs">
+              <rect x="10" y="220" width="580" height="56" class="layer-rect" fill="#3d2a1e" tabindex="0" role="button" aria-label="Observability layer — hover for details"/>
+              <text x="300" y="244" class="layer-label" text-anchor="middle">Observability: Atlas + Chaos Monkey</text>
+              <text x="300" y="260" class="layer-detail" text-anchor="middle">Netflix-built metrics system, resilience testing via fault injection</text>
+            </g>
+            <g class="layer" data-layer="sec">
+              <rect x="10" y="282" width="580" height="56" class="layer-rect" fill="#3d1e2a" tabindex="0" role="button" aria-label="Security layer — hover for details"/>
+              <text x="300" y="306" class="layer-label" text-anchor="middle">Security: AWS IAM + Security Groups + TLS</text>
+              <text x="300" y="322" class="layer-detail" text-anchor="middle">Instance-level IAM, network segmentation, mTLS between services</text>
+            </g>
+          </svg>
+        </div>
+
+        <blockquote class="pull">A platform that requires a visit is a platform that's already failed.</blockquote>
+      </section>
+
+      <!-- ====== THE FLIP SIDE ====== -->
+      <section class="chapter" id="s3">
+        <h2>The Flip Side</h2>
+        <p>The strongest counterargument is real: portals provide discoverability and governance. Engineers need to know what services exist, what templates are available, and what compliance requirements apply. Without a portal, how do they find anything? This is valid — but it confuses the catalog with the platform. Discoverability is a documentation problem, not a platform problem. And governance that requires a human to visit a portal and click a button is governance that can be automated. Netflix's Paved Road didn't eliminate discoverability — it made the default path discoverable by default, so you only needed the catalog when you were doing something unusual. The catalog should be the exception path, not the happy path. If your governance requires a visit, your governance is a toll booth, not a guardrail.</p>
+      </section>
+
+      <!-- ====== YOUR MOVE ====== -->
+      <section class="chapter" id="s4">
+        <h2>Your Move</h2>
+
+        <div class="action-card">
+          <h3>1. Audit required visits</h3>
+          <p>Every place a developer must go to your platform instead of having it come to them is a friction point. Count them. Track them. Set a quarterly target to eliminate half. Tools like Friction Log can help you systematically identify and categorize where your platform adds friction instead of removing it — logging every moment of cognitive load in the tools engineers already use.</p>
+        </div>
+
+        <div class="action-card">
+          <h3>2. Deliver through existing tools</h3>
+          <p>IDE extensions that surface the right template. CLI tools that scaffold the compliant path. CI pipelines that auto-apply the right policies. The platform should meet engineers where they are, not the other way around. Pathfinder can analyze your CI/CD pipelines to show you exactly where the "paved path" diverges from what developers actually do — so you can close the gap.</p>
+        </div>
+
+        <div class="action-card">
+          <h3>3. Change your metrics</h3>
+          <p>Stop measuring portal adoption. Start measuring time-to-first-deploy, number of context switches, and developer satisfaction with platform capabilities. The DORA team's research shows these are the metrics that actually predict productivity gains. Service Radar can scan your service catalog to identify "dead zones" — services nobody uses, documentation that's stale, golden paths that nobody follows — so you measure what's actually working, not what's just registered.</p>
+        </div>
+
+        <!-- Candidate Comparison Chart -->
+        <div class="cmp-chart" role="img" aria-label="Tool candidate comparison chart — hover each row for details">
+          <svg viewBox="0 0 600 310" xmlns="http://www.w3.org/2000/svg">
+            <text x="300" y="18" class="col-head" font-size="13" fill="var(--accent)">Linked Tool Comparison</text>
+
+            <!-- Column headers -->
+            <text x="145" y="44" class="col-head">Friction Log</text>
+            <text x="335" y="44" class="col-head">Pathfinder</text>
+            <text x="510" y="44" class="col-head">Service Radar</text>
+            <line x1="10" y1="52" x2="590" y2="52" stroke="var(--border)" stroke-width="1"/>
+
+            <!-- Row: Free Tier -->
+            <g class="row-group" tabindex="0" role="button" aria-label="Free tier comparison">
+              <text x="68" y="78" class="row-head">Free Tier</text>
+              <rect x="90" y="66" width="110" height="18" class="bar-bg"/>
+              <rect x="90" y="66" width="55" height="18" class="bar-fill" fill="var(--accent)"/>
+              <text x="152" y="79" class="bar-val">5 devs</text>
+              <rect x="280" y="66" width="110" height="18" class="bar-bg"/>
+              <rect x="280" y="66" width="33" height="18" class="bar-fill" fill="var(--accent2)"/>
+              <text x="322" y="79" class="bar-val">3 pipes</text>
+              <rect x="455" y="66" width="110" height="18" class="bar-bg"/>
+              <rect x="455" y="66" width="55" height="18" class="bar-fill" fill="var(--accent)"/>
+              <text x="517" y="79" class="bar-val">50 svc</text>
+              <rect x="90" y="88" width="510" height="28" rx="4" fill="var(--accent-dim)" class="row-tooltip"/>
+              <text x="345" y="106" font-size="9" fill="var(--text)" text-anchor="middle" class="row-tooltip">Free tiers are generous enough for small teams to validate value before paying</text>
+            </g>
+
+            <!-- Row: Paid Tier -->
+            <g class="row-group" tabindex="0" role="button" aria-label="Paid tier comparison">
+              <text x="68" y="140" class="row-head">Paid Tier</text>
+              <rect x="90" y="128" width="110" height="18" class="bar-bg"/>
+              <rect x="90" y="128" width="88" height="18" class="bar-fill" fill="#4ade80"/>
+              <text x="158" y="141" class="bar-val">$8/dev/mo</text>
+              <rect x="280" y="128" width="110" height="18" class="bar-bg"/>
+              <rect x="280" y="128" width="77" height="18" class="bar-fill" fill="#4ade80"/>
+              <text x="348" y="141" class="bar-val">$12/mo</text>
+              <rect x="455" y="128" width="110" height="18" class="bar-bg"/>
+              <rect x="455" y="128" width="88" height="18" class="bar-fill" fill="#4ade80"/>
+              <text x="523" y="141" class="bar-val">$15/mo</text>
+              <rect x="90" y="150" width="510" height="28" rx="4" fill="var(--accent-dim)" class="row-tooltip"/>
+              <text x="345" y="168" font-size="9" fill="var(--text)" text-anchor="middle" class="row-tooltip">Pricing aligned with validated willingness-to-pay from DX, OpsLevel, and Port competitors</text>
+            </g>
+
+            <!-- Row: Distribution -->
+            <g class="row-group" tabindex="0" role="button" aria-label="Distribution mechanism comparison">
+              <text x="68" y="202" class="row-head">Distribution</text>
+              <rect x="90" y="190" width="110" height="18" class="bar-bg"/>
+              <rect x="90" y="190" width="99" height="18" class="bar-fill" fill="#fbbf24"/>
+              <text x="148" y="203" class="bar-val" font-size="9">Slack + CLI + GH</text>
+              <rect x="280" y="190" width="110" height="18" class="bar-bg"/>
+              <rect x="280" y="190" width="77" height="18" class="bar-fill" fill="#fbbf24"/>
+              <text x="338" y="203" class="bar-val" font-size="9">GH App + API</text>
+              <rect x="455" y="190" width="110" height="18" class="bar-bg"/>
+              <rect x="455" y="190" width="99" height="18" class="bar-fill" fill="#fbbf24"/>
+              <text x="513" y="203" class="bar-val" font-size="9">GH Action + Slack</text>
+              <rect x="90" y="212" width="510" height="28" rx="4" fill="var(--accent-dim)" class="row-tooltip"/>
+              <text x="345" y="230" font-size="9" fill="var(--text)" text-anchor="middle" class="row-tooltip">All three embed into existing developer workflows — no separate portal visit required</text>
+            </g>
+
+            <!-- Row: LLM Feature -->
+            <g class="row-group" tabindex="0" role="button" aria-label="LLM feature comparison">
+              <text x="68" y="264" class="row-head">LLM Feature</text>
+              <rect x="90" y="252" width="110" height="18" class="bar-bg"/>
+              <rect x="90" y="252" width="99" height="18" class="bar-fill" fill="#00d4aa"/>
+              <text x="145" y="265" class="bar-val" font-size="9">Categorize + Cluster</text>
+              <rect x="280" y="252" width="110" height="18" class="bar-bg"/>
+              <rect x="280" y="252" width="88" height="18" class="bar-fill" fill="#00d4aa"/>
+              <text x="335" y="265" class="bar-val" font-size="9">Pipeline Analysis</text>
+              <rect x="455" y="252" width="110" height="18" class="bar-bg"/>
+              <rect x="455" y="252" width="77" height="18" class="bar-fill" fill="#00d4aa"/>
+              <text x="510" y="265" class="bar-val" font-size="9">Doc Freshness</text>
+              <rect x="90" y="274" width="510" height="28" rx="4" fill="var(--accent-dim)" class="row-tooltip"/>
+              <text x="345" y="292" font-size="9" fill="var(--text)" text-anchor="middle" class="row-tooltip">All powered by Gemini free-tier API — zero additional infra cost for the LLM layer</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ====== FIRST THINGS FIRST ====== -->
+      <section class="chapter" id="s5">
+        <h2>First Things First</h2>
+        <p>Open your platform's analytics dashboard today. Look at the "most visited pages" report. Every page on that list is a place where your platform is asking engineers to come to it instead of meeting them where they already are. Pick the top one. Make it unnecessary within 30 days.</p>
+      </section>
+
+      <!-- ====== RECALL CARDS ====== -->
+      <div class="recall-progress" id="recallProgress"></div>
+      <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">Recall Practice</h3>
+      <div class="recall-cards" id="recallCards">
+        <div class="recall-card" onclick="flipCard(this)">
+          <div class="recall-inner">
+            <div class="recall-front">What metric should platform teams measure instead of portal adoption?</div>
+            <div class="recall-back">Absence — how many engineers never need to visit the portal because capabilities are already woven into their workflow.</div>
+          </div>
+        </div>
+        <div class="recall-card" onclick="flipCard(this)">
+          <div class="recall-inner">
+            <div class="recall-front">What was the key architectural decision in Netflix's Paved Road?</div>
+            <div class="recall-back">Making platform capabilities available through the tools engineers already used — IDE, CLI, CI pipeline — rather than through a separate web interface.</div>
+          </div>
+        </div>
+        <div class="recall-card" onclick="flipCard(this)">
+          <div class="recall-inner">
+            <div class="recall-front">What did the DORA 2024 report find about platform engineering?</div>
+            <div class="recall-back">Teams treating their platform as a product with real SLAs saw significantly higher developer productivity than teams treating platforms as internal tooling.</div>
+          </div>
+        </div>
+        <div class="recall-card" onclick="flipCard(this)">
+          <div class="recall-inner">
+            <div class="recall-front">Why is a "self-service portal" a confession of platform failure?</div>
+            <div class="recall-back">Because it means the platform is a destination engineers must visit, not a utility woven into their existing workflow.</div>
+          </div>
+        </div>
+        <div class="recall-card" onclick="flipCard(this)">
+          <div class="recall-inner">
+            <div class="recall-front">What three actions should platform teams take to make their platform invisible?</div>
+            <div class="recall-back">Audit required visits, deliver capabilities through existing tools, and change metrics from adoption to cognitive load reduction.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== CONCEPT MAP ====== -->
+      <div class="concept-map" role="img" aria-label="Concept map of core platform ideas">
+        <svg viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
+          <line x1="300" y1="60" x2="140" y2="180" class="edge"/>
+          <line x1="300" y1="60" x2="460" y2="180" class="edge"/>
+          <line x1="300" y1="60" x2="300" y2="200" class="edge"/>
+          <line x1="140" y1="180" x2="80" y2="310" class="edge"/>
+          <line x1="460" y1="180" x2="520" y2="310" class="edge"/>
+          <line x1="300" y1="200" x2="300" y2="330" class="edge"/>
+          <line x1="140" y1="180" x2="300" y2="200" class="edge" stroke-dasharray="4"/>
+          <line x1="460" y1="180" x2="300" y2="200" class="edge" stroke-dasharray="4"/>
+          <circle cx="300" cy="60" r="38" class="node" fill="#00d4aa33" stroke="#00d4aa" stroke-width="2" tabindex="0" role="button" aria-label="Invisible Platform concept"/>
+          <text x="300" y="56" class="node-label" font-weight="700" font-size="12">Invisible</text>
+          <text x="300" y="70" class="node-label" font-size="10">Platform</text>
+          <circle cx="140" cy="180" r="34" class="node" fill="#ff6b6b33" stroke="#ff6b6b" stroke-width="2" tabindex="0" role="button" aria-label="Self-Service Portal concept"/>
+          <text x="140" y="177" class="node-label" font-weight="700" font-size="11">Self-Service</text>
+          <text x="140" y="190" class="node-label" font-size="10">Portal</text>
+          <circle cx="460" cy="180" r="34" class="node" fill="#4ade8033" stroke="#4ade80" stroke-width="2" tabindex="0" role="button" aria-label="Paved Path concept"/>
+          <text x="460" y="177" class="node-label" font-weight="700" font-size="11">Paved</text>
+          <text x="460" y="190" class="node-label" font-size="10">Path</text>
+          <circle cx="300" cy="200" r="30" class="node" fill="#fbbf2433" stroke="#fbbf24" stroke-width="2" tabindex="0" role="button" aria-label="Cognitive Load concept"/>
+          <text x="300" y="197" class="node-label" font-weight="700" font-size="10">Cognitive</text>
+          <text x="300" y="209" class="node-label" font-size="10">Load</text>
+          <circle cx="80" cy="310" r="30" class="node" fill="#6e759033" stroke="#6e7590" stroke-width="2" tabindex="0" role="button" aria-label="Adoption Metric concept"/>
+          <text x="80" y="307" class="node-label" font-weight="700" font-size="10">Adoption</text>
+          <text x="80" y="319" class="node-label" font-size="10">Metric</text>
+          <circle cx="520" cy="310" r="30" class="node" fill="#00d4aa33" stroke="#00d4aa" stroke-width="2" tabindex="0" role="button" aria-label="Absence Metric concept"/>
+          <text x="520" y="307" class="node-label" font-weight="700" font-size="10">Absence</text>
+          <text x="520" y="319" class="node-label" font-size="10">Metric</text>
+          <circle cx="300" cy="330" r="30" class="node" fill="#4ade8033" stroke="#4ade80" stroke-width="2" tabindex="0" role="button" aria-label="Platform as Product concept"/>
+          <text x="300" y="327" class="node-label" font-weight="700" font-size="10">Platform</text>
+          <text x="300" y="339" class="node-label" font-size="10">as Product</text>
+        </svg>
+      </div>
+
+      <!-- ====== SOCIAL SHARE ====== -->
+      <div class="share-block">
+        <a class="share-x" id="shareX" href="#" target="_blank" rel="noopener">Share on X</a>
+        <a class="share-li" id="shareLi" href="#" target="_blank" rel="noopener">Share on LinkedIn</a>
+      </div>
+
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="citations">
+    <strong>Sources:</strong><br>
+    Spotify Engineering Blog — Backstage origin and open-source announcement (backstage.io)<br>
+    Netflix TechBlog — Paved Road initiative and platform engineering (medium.com/netflix-techblog)<br>
+    DORA 2024 Accelerate State of DevOps Report (dora.dev/research)<br>
+    CNCF Backstage project documentation (backstage.io)<br>
+    DX developer experience platform funding — TechCrunch 2024<br>
+    OpsLevel, Port, Humanitec — Crunchbase funding data<br>
+    Roadie (managed Backstage) — funding announcements
+  </div>
+  <div class="footer-links">
+    <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top</a>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+  </div>
+</footer>
+
+<script>
+/* ── Progress bar ── */
+const bar = document.getElementById('progress');
+const updateProgress = () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+};
+window.addEventListener('scroll', updateProgress, {passive: true});
+
+/* ── Hamburger menu ── */
+const hamburger = document.getElementById('hamburger');
+const rail = document.getElementById('rail');
+const scrim = document.getElementById('scrim');
+hamburger.addEventListener('click', () => {
+  rail.classList.toggle('open');
+  scrim.classList.toggle('open');
+});
+scrim.addEventListener('click', () => {
+  rail.classList.remove('open');
+  scrim.classList.remove('open');
+});
+
+/* ── Active sidebar link tracking ── */
+const sections = document.querySelectorAll('.chapter');
+const railLinks = document.querySelectorAll('#rail a');
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      railLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('#rail a[href="#' + e.target.id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+}, {rootMargin: '-80px 0px -60% 0px'});
+sections.forEach(s => sectionObserver.observe(s));
+
+/* ── Close rail on link click (mobile) ── */
+railLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    rail.classList.remove('open');
+    scrim.classList.remove('open');
+  });
+});
+
+/* ── Social share ── */
+const shareText = encodeURIComponent(
+  "Your developer platform isn't failing because it lacks features — " +
+  "it's failing because engineers have to go to it. The best platform is the one nobody visits."
+);
+const shareUrl = encodeURIComponent(window.location.href);
+document.getElementById('shareX').href =
+  'https://twitter.com/intent/tweet?text=' + shareText + '&url=' + shareUrl;
+document.getElementById('shareLi').href =
+  'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
+
+/* ── SVG layer-rect interactivity ── */
+document.querySelectorAll('.svg-diagram .layer').forEach(group => {
+  const rect = group.querySelector('.layer-rect');
+  if (!rect) return;
+
+  const activate = () => group.classList.add('hovered');
+  const deactivate = () => group.classList.remove('hovered');
+
+  rect.addEventListener('mouseenter', activate);
+  rect.addEventListener('mouseleave', deactivate);
+  rect.addEventListener('focus', activate);
+  rect.addEventListener('blur', deactivate);
+
+  // Toggle on tap for touch devices
+  rect.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    group.classList.toggle('hovered');
+  }, {passive: false});
+});
+
+/* ── Concept map node hover ── */
+document.querySelectorAll('.concept-map .node').forEach(node => {
+  node.addEventListener('mouseenter', () => { node.style.strokeWidth = '3'; });
+  node.addEventListener('mouseleave', () => { node.style.strokeWidth = '2'; });
+  node.addEventListener('focus', () => { node.style.strokeWidth = '3'; });
+  node.addEventListener('blur', () => { node.style.strokeWidth = '2'; });
+});
+
+/* ── Comparison chart row-group hover ── */
+document.querySelectorAll('.cmp-chart .row-group').forEach(group => {
+  const activate = () => group.classList.add('hovered');
+  const deactivate = () => group.classList.remove('hovered');
+  group.addEventListener('mouseenter', activate);
+  group.addEventListener('mouseleave', deactivate);
+  group.addEventListener('focus', activate);
+  group.addEventListener('blur', deactivate);
+  group.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    // Close any other open rows first
+    document.querySelectorAll('.cmp-chart .row-group.hovered').forEach(g => {
+      if (g !== group) g.classList.remove('hovered');
+    });
+    group.classList.toggle('hovered');
+  }, {passive: false});
+});
+
+/* ── Recall cards with session-based tracking ── */
+let recalled = 0;
+const totalCards = document.querySelectorAll('.recall-card').length;
+const progressEl = document.getElementById('recallProgress');
+
+function flipCard(el) {
+  el.classList.toggle('flipped');
+  if (el.classList.contains('flipped')) {
+    recalled++;
+    try { sessionStorage.setItem('friction_recall', recalled); } catch(e) {}
+  }
+  updateRecallProgress();
+}
+
+function updateRecallProgress() {
+  try {
+    recalled = Math.max(recalled, parseInt(sessionStorage.getItem('friction_recall') || '0'));
+  } catch(e) {}
+  const shown = Math.min(recalled, totalCards);
+  progressEl.textContent = 'Cards reviewed: ' + shown + ' / ' + totalCards;
+}
+updateRecallProgress();
+</script>
+</body>
+</html>
