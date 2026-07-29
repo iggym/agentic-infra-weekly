@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guard the Graph — Agentic Infra Weekly</title>
+<style>
+:root {
+  --bg: #08080d;
+  --surface: #0f0f18;
+  --surface2: #161622;
+  --border: #1c1c2e;
+  --text: #d8d8e4;
+  --muted: #6a6a82;
+  --accent: #00d4aa;
+  --accent2: #ff6b6b;
+  --warning: #ffb347;
+  --gold: #ffd700;
+  --max: 660px;
+  --rail-w: 220px;
+  --topbar-h: 56px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border) var(--bg)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:16px}
+a{color:var(--accent);text-decoration:none;transition:opacity .2s}
+a:hover{opacity:.85}
+::selection{background:var(--accent);color:#000}
+
+/* Progress bar */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:9999;transition:width .15s}
+
+/* Topbar */
+#topbar{position:sticky;top:0;z-index:1000;height:var(--topbar-h);display:flex;align-items:center;padding:0 1.5rem;background:rgba(8,8,13,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border);gap:1rem}
+#topbar .home{font-weight:700;font-size:.9rem;color:var(--text);white-space:nowrap}
+#topbar .home:hover{color:var(--accent)}
+#topbar .crumb{font-size:.8rem;color:var(--muted)}
+#topbar .crumb a{color:var(--muted)}
+#topbar .reading-time{margin-left:auto;font-size:.78rem;color:var(--muted);white-space:nowrap}
+#hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:4px 8px}
+
+/* Layout */
+.wrap{display:grid;grid-template-columns:var(--rail-w) 1fr;max-width:calc(var(--max) + 260px);margin:0 auto;gap:0}
+#rail{position:sticky;top:100px;height:fit-content;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border)}
+#rail ol{list-style:none;counter-reset:chapter;padding:0}
+#rail ol li{counter-increment:chapter;margin-bottom:.6rem}
+#rail ol li a{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;transition:color .2s}
+#rail ol li a::before{content:counter(chapter);display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);font-size:.7rem;color:var(--muted);flex-shrink:0;transition:all .2s}
+#rail ol li a:hover,#rail ol li a.active{color:var(--accent)}
+#rail ol li a:hover::before,#rail ol li a.active::before{border-color:var(--accent);color:var(--accent)}
+
+main{padding:2rem 2.5rem 4rem;max-width:var(--max);min-width:0}
+
+/* Hero */
+.hero{margin-bottom:3rem}
+.hero h1{font-size:clamp(2.1rem,5vw,3.1rem);font-weight:800;line-height:1.15;letter-spacing:-.02em;margin-bottom:.75rem}
+.hero .meta{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+.hero .tag{display:inline-block;padding:2px 10px;border-radius:4px;background:rgba(0,212,170,.1);color:var(--accent);font-size:.75rem;font-weight:600}
+
+/* Spectrum widget */
+.spectrum{margin:2rem 0;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.spectrum h3{font-size:.85rem;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
+.spectrum-bar{height:40px;border-radius:8px;position:relative;overflow:hidden;margin-bottom:1rem}
+.spectrum-bar.old{background:linear-gradient(90deg,#ff6b6b 0%,#ff6b6b 25%,#ffb347 25%,#ffb347 50%,#ffb347 50%,#ffb347 75%,#ffb347 75%,#ffb347 100%)}
+.spectrum-bar.new{background:linear-gradient(90deg,#00d4aa 0%,#00d4aa 15%,#00d4aa 15%,#00d4aa 30%,#ffd700 30%,#ffd700 50%,#ff6b6b 50%,#ff6b6b 65%,#ff6b6b 65%,#ff6b6b 80%,#00d4aa 80%,#00d4aa 100%)}
+.spectrum-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.spectrum-legend{display:flex;gap:1.5rem;margin-top:.75rem;font-size:.75rem;flex-wrap:wrap}
+.spectrum-legend span{display:flex;align-items:center;gap:.4rem}
+.spectrum-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* Chapter sections */
+.chapter{scroll-margin-top:80px;margin-bottom:2.5rem}
+.chapter h2{font-size:1.35rem;font-weight:700;margin-bottom:1rem;color:var(--text);letter-spacing:-.01em}
+.chapter p{margin-bottom:1rem}
+.chapter ol,.chapter ul{margin:0 0 1rem 1.5rem}
+.chapter li{margin-bottom:.5rem}
+.chapter strong{color:var(--text);font-weight:600}
+
+/* Pull quote */
+blockquote.pull{margin:2rem 0;padding:1.25rem 1.5rem;border-left:3px solid var(--accent);background:rgba(0,212,170,.05);border-radius:0 8px 8px 0;font-size:1.1rem;font-weight:600;color:var(--accent);line-height:1.5}
+
+/* SVG diagrams */
+.diagram-container{margin:2rem 0;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto}
+.diagram-container h3{font-size:.85rem;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
+.diagram-container svg{width:100%;max-width:600px;display:block;margin:0 auto}
+.diagram-container svg text{font-family:-apple-system,system-ui,sans-serif}
+.diagram-container svg .layer{cursor:pointer;transition:opacity .2s}
+.diagram-container svg .layer:hover{opacity:.8}
+.diagram-container svg .layer:hover rect{stroke:var(--accent)}
+.diagram-container svg .annotation{opacity:0;transition:opacity .3s}
+.diagram-container svg .layer:hover+.annotation,.diagram-container svg .layer:hover~.annotation{opacity:1}
+.diagram-container svg .node{cursor:pointer;transition:transform .2s}
+.diagram-container svg .node:hover{transform:scale(1.08)}
+.diagram-container svg .edge{stroke:var(--border);stroke-width:1.5;fill:none}
+.diagram-container svg .edge.danger{stroke:var(--accent2);stroke-dasharray:4,3}
+.diagram-container svg .edge.safe{stroke:var(--accent)}
+.diagram-tooltip{position:fixed;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem .75rem;border-radius:6px;font-size:.78rem;pointer-events:none;z-index:999;max-width:250px;opacity:0;transition:opacity .2s}
+
+/* Recall cards */
+.recall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin:2rem 0}
+.recall-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;perspective:1000px;min-height:160px}
+.recall-card-inner{position:relative;width:100%;min-height:160px;transition:transform .5s;transform-style:preserve-3d}
+.recall-card.flipped .recall-card-inner{transform:rotateY(180deg)}
+.recall-card-front,.recall-card-back{position:absolute;inset:0;backface-visibility:hidden;padding:1.25rem;display:flex;flex-direction:column;justify-content:center}
+.recall-card-front{background:var(--surface)}
+.recall-card-back{background:var(--surface2);transform:rotateY(180deg);border-top:2px solid var(--accent)}
+.recall-card-front .q-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.recall-card-front .q-text{font-size:.9rem;font-weight:600;line-height:1.5}
+.recall-card-back .a-label{font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.recall-card-back .a-text{font-size:.85rem;line-height:1.5;color:var(--text)}
+.recall-progress{margin-top:1rem;font-size:.78rem;color:var(--muted)}
+.recall-progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:.4rem;overflow:hidden}
+.recall-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* Social share */
+.share-block{margin:2rem 0;padding:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.share-block span{font-size:.82rem;color:var(--muted);margin-right:.5rem}
+.share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:.82rem;cursor:pointer;transition:all .2s}
+.share-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:2rem 1.5rem;max-width:calc(var(--max) + 260px);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem}
+footer .citations{font-size:.72rem;color:var(--muted);max-width:60%;line-height:1.6}
+footer .citations strong{color:var(--text);font-weight:600}
+footer .footer-links{display:flex;gap:1rem;align-items:center}
+footer .footer-links a{font-size:.82rem;color:var(--muted)}
+footer .footer-links a:hover{color:var(--accent)}
+
+/* Scrim + drawer for mobile */
+#scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:998}
+#scrim.open{display:block}
+
+/* Responsive */
+@media(max-width:880px){
+  .wrap{grid-template-columns:1fr}
+  #rail{position:fixed;top:0;left:-280px;width:280px;height:100vh;z-index:999;background:var(--bg);border-right:1px solid var(--border);padding-top:80px;transition:left .3s}
+  #rail.open{left:0}
+  #hamburger{display:block}
+  main{padding:1.5rem 1.25rem 3rem}
+  footer .citations{max-width:100%}
+}
+@media(max-width:500px){
+  .recall-grid{grid-template-columns:1fr}
+  .hero h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <button id="hamburger" aria-label="Toggle navigation" onclick="toggleRail()">&#9776;</button>
+  <a class="home" href="https://iggym.github.io/agentic-infra-weekly/">Agentic Infra Weekly</a>
+  <span class="crumb">› <a href="#">Week 26, 2026</a></span>
+  <span class="reading-time">8 min read</span>
+</header>
+
+<div id="scrim" onclick="toggleRail()"></div>
+
+<div class="wrap">
+  <aside id="rail">
+    <ol>
+      <li><a href="#s1" onclick="closeRail()">The Wrong Door</a></li>
+      <li><a href="#s2" onclick="closeRail()">Guard the Graph</a></li>
+      <li><a href="#s3" onclick="closeRail()">Blind Spot</a></li>
+      <li><a href="#s4" onclick="closeRail()">The Perimeter Problem</a></li>
+      <li><a href="#s5" onclick="closeRail()">Lock the Edges</a></li>
+      <li><a href="#s6" onclick="closeRail()">Count the Tools</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <article>
+      <header class="hero">
+        <h1>Guard the Graph</h1>
+        <div class="meta">
+          <span class="tag">Security &amp; Governance</span>
+          <span>Week 26 · June 22, 2026</span>
+          <span>Research window: 17 weeks (Feb 23 – Jun 28, 2026)</span>
+        </div>
+      </header>
+
+      <!-- Spectrum Widget -->
+      <div class="spectrum">
+        <h3>Security Model Shift</h3>
+        <div class="spectrum-bar old" style="margin-bottom:.5rem"></div>
+        <div class="spectrum-labels"><span>Old: Prompt-focused</span><span>Input filtering only</span></div>
+        <div class="spectrum-bar new" style="margin-top:1rem;margin-bottom:.5rem"></div>
+        <div class="spectrum-labels"><span>New: Tool-graph-focused</span><span>Full affordance audit</span></div>
+        <div class="spectrum-legend">
+          <span><span class="dot" style="background:#00d4aa"></span> Least privilege</span>
+          <span><span class="dot" style="background:#ffd700"></span> Monitored</span>
+          <span><span class="dot" style="background:#ff6b6b"></span> Excessive</span>
+          <span><span class="dot" style="background:#ffb347"></span> Unguarded</span>
+        </div>
+      </div>
+
+      <!-- Section 1 -->
+      <section class="chapter" id="s1">
+        <h2>The Wrong Door</h2>
+        <p>In March 2025, a security researcher at Trail of Bits sat down to test the Model Context Protocol, the open standard connecting AI agents to external tools. They registered a seemingly innocent MCP server that offered a "file search" helper. Buried in the tool's description was a hidden instruction telling the LLM to read SSH keys and exfiltrate them through a side channel. Claude complied without hesitation. The audit log recorded a "file search" call — technically accurate, completely misleading. The tool graph — the map of what the agent could actually reach — told a different story than the audit trail.</p>
+      </section>
+
+      <!-- Architecture Diagram -->
+      <div class="diagram-container">
+        <h3>MCP Architecture — Trail of Bits Finding</h3>
+        <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" id="arch-svg">
+          <!-- Infrastructure layer -->
+          <g class="layer" data-tip="Infrastructure: Local machines & cloud-hosted MCP servers — no network isolation between tool servers">
+            <rect x="30" y="20" width="540" height="60" rx="8" fill="#1a1a2e" stroke="#2a2a44" stroke-width="1.5"/>
+            <text x="300" y="55" text-anchor="middle" fill="#6a6a82" font-size="12">Infrastructure: Local Dev Machines · Cloud MCP Servers (AWS/GCP)</text>
+          </g>
+          <!-- Orchestration layer -->
+          <g class="layer" data-tip="Orchestration: Claude Desktop + npm/npx — no verification of tool server provenance">
+            <rect x="30" y="95" width="540" height="60" rx="8" fill="#1a1a2e" stroke="#2a2a44" stroke-width="1.5"/>
+            <text x="300" y="130" text-anchor="middle" fill="#6a6a82" font-size="12">Orchestration: Claude Desktop · npm/npx · MCP Server Registration</text>
+          </g>
+          <!-- Data/runtime layer -->
+          <g class="layer" data-tip="Runtime: Claude LLM + MCP JSON-RPC — tool descriptions can contain hidden instructions">
+            <rect x="30" y="170" width="540" height="60" rx="8" fill="#1a1a2e" stroke="#ff6b6b" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="300" y="205" text-anchor="middle" fill="#ff6b6b" font-size="12">⚠ Data/Runtime: Claude LLM · MCP (JSON-RPC) · Slack API · File System</text>
+          </g>
+          <!-- Observability layer -->
+          <g class="layer" data-tip="Observability: Minimal — basic logging only, no structured audit trail, no OpenTelemetry">
+            <rect x="30" y="245" width="540" height="60" rx="8" fill="#1a1a2e" stroke="#ffb347" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="300" y="280" text-anchor="middle" fill="#ffb347" font-size="12">⚠ Observability: Basic Logging · No Structured Audit · No OTel</text>
+          </g>
+          <!-- Security layer -->
+          <g class="layer" data-tip="Security: OAuth 2.0 on some servers, but ZERO tool-level permission scoping — defense-in-depth absent">
+            <rect x="30" y="320" width="540" height="60" rx="8" fill="#1a1a2e" stroke="#ff6b6b" stroke-width="2"/>
+            <text x="300" y="355" text-anchor="middle" fill="#ff6b6b" font-size="12">✗ Security/Governance: OAuth 2.0 (partial) · No Tool-Level Scoping · No Audit</text>
+          </g>
+          <!-- Blast radius indicator -->
+          <rect x="30" y="395" width="540" height="20" rx="4" fill="url(#blastGrad)"/>
+          <defs>
+            <linearGradient id="blastGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#00d4aa"/>
+              <stop offset="30%" stop-color="#ffd700"/>
+              <stop offset="70%" stop-color="#ff6b6b"/>
+            </linearGradient>
+          </defs>
+          <text x="300" y="410" text-anchor="middle" fill="#000" font-size="9" font-weight="600">BLAST RADIUS: UNGUARDED</text>
+        </svg>
+        <div class="diagram-tooltip" id="arch-tooltip"></div>
+      </div>
+
+      <!-- Section 2 -->
+      <section class="chapter" id="s2">
+        <h2>Guard the Graph</h2>
+        <p>Your AI agent security model is backwards. You're guarding the prompt when you should be guarding the tool graph. The real attack surface isn't what you tell the agent — it's what the agent can reach.</p>
+        <p>Every security framework, audit requirement, and governance policy for AI systems focuses on input filtering, prompt injection defense, and content moderation. Those matter. But they're the perimeter, not the keep. The tool permission graph — the set of affordances an agent has at any moment — determines the blast radius of every compromise, every injection, every hallucination. And almost nobody is auditing it.</p>
+      </section>
+
+      <!-- Section 3 -->
+      <section class="chapter" id="s3">
+        <h2>Blind Spot</h2>
+        <p>Three things that seem separate are the same gap. The audit trail logs what the agent did. The permission model controls who can act. The observability stack watches for anomalies. All three miss the question that matters: what could the agent have done?</p>
+        <p>Invariant Labs demonstrated this in early 2025. They built a malicious MCP server that registered a tool with a description instructing the LLM to read private Slack channels and forward the contents. The LLM followed the instruction. The Slack API call was legitimate — the agent had the token. The audit trail showed a "read channel" API call. Nothing anomalous. Nothing flagged. The tool graph — the fact that the agent had Slack access at all — was the vulnerability, and nobody was watching it.</p>
+        <p>The OWASP Top 10 for LLMs, updated in 2025, codified this pattern as "Excessive Agency" — the category for AI agents that have more permissions than their function requires. The name is precise. The problem isn't that the agent is malicious. The problem is that the agent has affordances it shouldn't.</p>
+        <p>The audit trail and the permission model look at the same system from different angles, but neither sees the graph. The observability stack watches for anomalies in what happened, not affordances in what could happen. They're all perimeter guards watching different doors on the same building, and the tool graph is the window nobody watches.</p>
+        <blockquote class="pull">The audit trail tells you what the agent did. The tool graph tells you what it could have done.</blockquote>
+      </section>
+
+      <!-- Tool Graph Concept Map -->
+      <div class="diagram-container">
+        <h3>Concept Map — The Tool Graph Gap</h3>
+        <svg viewBox="0 0 600 360" xmlns="http://www.w3.org/2000/svg" id="concept-svg">
+          <!-- Center node: Tool Graph -->
+          <g class="node" data-tip="The tool permission graph — the set of affordances an agent has. This is the blast radius determinant.">
+            <circle cx="300" cy="180" r="45" fill="#00d4aa" fill-opacity=".15" stroke="#00d4aa" stroke-width="2"/>
+            <text x="300" y="176" text-anchor="middle" fill="#00d4aa" font-size="13" font-weight="700">Tool</text>
+            <text x="300" y="192" text-anchor="middle" fill="#00d4aa" font-size="13" font-weight="700">Graph</text>
+          </g>
+          <!-- Audit Trail -->
+          <g class="node" data-tip="Logs what the agent did — but misses what it could have done. Logs decisions, not affordances.">
+            <circle cx="100" cy="80" r="35" fill="#ffb347" fill-opacity=".12" stroke="#ffb347" stroke-width="1.5"/>
+            <text x="100" y="84" text-anchor="middle" fill="#ffb347" font-size="11" font-weight="600">Audit Trail</text>
+          </g>
+          <line class="edge danger" x1="133" y1="100" x2="262" y2="160"/>
+          <!-- Permission Model -->
+          <g class="node" data-tip="Controls who can act — but doesn't scope what tools the agent can reach. Identity-level, not affordance-level.">
+            <circle cx="500" cy="80" r="35" fill="#ffb347" fill-opacity=".12" stroke="#ffb347" stroke-width="1.5"/>
+            <text x="500" y="76" text-anchor="middle" fill="#ffb347" font-size="11" font-weight="600">Permission</text>
+            <text x="500" y="90" text-anchor="middle" fill="#ffb347" font-size="11" font-weight="600">Model</text>
+          </g>
+          <line class="edge danger" x1="467" y1="100" x2="338" y2="160"/>
+          <!-- Observability -->
+          <g class="node" data-tip="Watches for anomalies in what happened — but not affordances in what could happen. Reactive, not preventive.">
+            <circle cx="100" cy="280" r="35" fill="#ffb347" fill-opacity=".12" stroke="#ffb347" stroke-width="1.5"/>
+            <text x="100" y="284" text-anchor="middle" fill="#ffb347" font-size="11" font-weight="600">Observability</text>
+          </g>
+          <line class="edge danger" x1="133" y1="260" x2="262" y2="200"/>
+          <!-- Least Privilege -->
+          <g class="node" data-tip="The principle of least privilege — applied at the tool level, this is the cure. Not applied = Excessive Agency.">
+            <circle cx="500" cy="280" r="35" fill="#00d4aa" fill-opacity=".12" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="500" y="276" text-anchor="middle" fill="#00d4aa" font-size="11" font-weight="600">Least</text>
+            <text x="500" y="290" text-anchor="middle" fill="#00d4aa" font-size="11" font-weight="600">Privilege</text>
+          </g>
+          <line class="edge safe" x1="467" y1="260" x2="338" y2="200"/>
+          <!-- Blast Radius -->
+          <g class="node" data-tip="The blast radius of any agent compromise is determined by the tool graph, not the prompt. Guard the graph.">
+            <rect x="245" y="320" width="110" height="30" rx="6" fill="#ff6b6b" fill-opacity=".15" stroke="#ff6b6b" stroke-width="1.5"/>
+            <text x="300" y="340" text-anchor="middle" fill="#ff6b6b" font-size="11" font-weight="600">Blast Radius</text>
+          </g>
+          <line class="edge danger" x1="300" y1="225" x2="300" y2="320"/>
+          <!-- Legend -->
+          <line x1="30" y1="340" x2="60" y2="340" stroke="#ff6b6b" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="65" y="344" fill="#6a6a82" font-size="9">Gap / vulnerability</text>
+          <line x1="30" y1="352" x2="60" y2="352" stroke="#00d4aa" stroke-width="1.5"/>
+          <text x="65" y="356" fill="#6a6a82" font-size="9">Proper application</text>
+        </svg>
+        <div class="diagram-tooltip" id="concept-tooltip"></div>
+      </div>
+
+      <!-- Section 4 -->
+      <section class="chapter" id="s4">
+        <h2>The Perimeter Problem</h2>
+        <p>The Trail of Bits MCP analysis identified that the protocol assumes trust between client and server with no verification layer — no tool-level access control, no permission scoping, no audit logging of the tool graph itself. The architecture is a defense-in-depth failure. The MCP protocol runs on local machines or cloud servers, orchestrated through Claude Desktop or similar clients, with Claude as the LLM and MCP as the JSON-RPC communication layer, OAuth 2.0 for authentication on some servers, but zero tool-level permission scoping. The observability layer is minimal — Claude Desktop has basic logging but no structured audit trail and no OpenTelemetry integration. The principle of least privilege, the most fundamental systems-thinking methodology for access control, is simply not applied at the tool level <cite>[Trail of Bits, 2025]</cite>.</p>
+        <p>The Invariant Labs demonstration showed the same gap in production integrations. Their Slack MCP server weaponization used legitimate API calls through legitimate tokens — the LLM was manipulated through the tool description, not through the prompt. The system was working as designed. The design was the problem <cite>[Invariant Labs, 2025]</cite>.</p>
+        <p>The OWASP "Excessive Agency" category confirms this is a recognized pattern, not a one-off <cite>[OWASP LLM Top 10, 2025]</cite>. The strongest counterargument is straightforward: prompt injection is the most demonstrated attack vector, and the tool graph is only as dangerous as the prompt allows, so guarding the prompt is the right priority. But prompt injection is the exploit, not the blast radius — a compromised prompt with zero tool access is a conversational nuisance; a clean prompt with excessive tool access is a production incident waiting to happen. You need both. But if you can only guard one, guard the graph.</p>
+      </section>
+
+      <!-- Candidate Comparison SVG -->
+      <div class="diagram-container">
+        <h3>Linked Artifact Comparison</h3>
+        <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" id="compare-svg">
+          <!-- Headers -->
+          <text x="30" y="25" fill="#6a6a82" font-size="11" font-weight="600">Criteria</text>
+          <text x="220" y="25" fill="#00d4aa" font-size="11" font-weight="600" text-anchor="middle">AgentGraph</text>
+          <text x="390" y="25" fill="#ffd700" font-size="11" font-weight="600" text-anchor="middle">PermissionLens</text>
+          <text x="540" y="25" fill="#ffb347" font-size="11" font-weight="600" text-anchor="middle">AuditTrail</text>
+          <line x1="20" y1="35" x2="580" y2="35" stroke="#1c1c2e" stroke-width="1"/>
+          <!-- Product Shape -->
+          <text x="30" y="65" fill="#d8d8e4" font-size="10">Product Shape</text>
+          <circle cx="220" cy="60" r="10" fill="#00d4aa" fill-opacity=".3" stroke="#00d4aa"/>
+          <text x="220" y="64" text-anchor="middle" fill="#00d4aa" font-size="9">✓</text>
+          <circle cx="390" cy="60" r="10" fill="#ffd700" fill-opacity=".3" stroke="#ffd700"/>
+          <text x="390" y="64" text-anchor="middle" fill="#ffd700" font-size="9">✓</text>
+          <circle cx="540" cy="60" r="10" fill="#ffb347" fill-opacity=".3" stroke="#ffb347"/>
+          <text x="540" y="64" text-anchor="middle" fill="#ffb347" font-size="9">✓</text>
+          <!-- Validated -->
+          <text x="30" y="105" fill="#d8d8e4" font-size="10">Validated (demand)</text>
+          <circle cx="220" cy="100" r="10" fill="#00d4aa" fill-opacity=".3" stroke="#00d4aa"/>
+          <text x="220" y="104" text-anchor="middle" fill="#00d4aa" font-size="9">✓</text>
+          <circle cx="390" cy="100" r="10" fill="#ffd700" fill-opacity=".3" stroke="#ffd700"/>
+          <text x="390" y="104" text-anchor="middle" fill="#ffd700" font-size="9">✓</text>
+          <circle cx="540" cy="100" r="10" fill="#ffb347" fill-opacity=".3" stroke="#ffb347"/>
+          <text x="540" y="104" text-anchor="middle" fill="#ffb347" font-size="9">✓</text>
+          <!-- Distribution -->
+          <text x="30" y="145" fill="#d8d8e4" font-size="10">Novel Distribution</text>
+          <circle cx="220" cy="140" r="10" fill="#00d4aa" fill-opacity=".3" stroke="#00d4aa"/>
+          <text x="220" y="144" text-anchor="middle" fill="#00d4aa" font-size="9">✓</text>
+          <circle cx="390" cy="140" r="10" fill="#ffd700" fill-opacity=".3" stroke="#ffd700"/>
+          <text x="390" y="144" text-anchor="middle" fill="#ffd700" font-size="9">✓</text>
+          <circle cx="540" cy="140" r="10" fill="#ffb347" fill-opacity=".3" stroke="#ffb347"/>
+          <text x="540" y="144" text-anchor="middle" fill="#ffb347" font-size="9">✓</text>
+          <!-- Zero-cost buildable -->
+          <text x="30" y="185" fill="#d8d8e4" font-size="10">Zero-Cost Buildable</text>
+          <circle cx="220" cy="180" r="10" fill="#00d4aa" fill-opacity=".3" stroke="#00d4aa"/>
+          <text x="220" y="184" text-anchor="middle" fill="#00d4aa" font-size="9">✓</text>
+          <circle cx="390" cy="180" r="10" fill="#ffd700" fill-opacity=".3" stroke="#ffd700"/>
+          <text x="390" y="184" text-anchor="middle" fill="#ffd700" font-size="9">✓</text>
+          <circle cx="540" cy="180" r="10" fill="#ffb347" fill-opacity=".3" stroke="#ffb347"/>
+          <text x="540" y="184" text-anchor="middle" fill="#ffb347" font-size="9">✓</text>
+          <!-- Stack -->
+          <line x1="20" y1="200" x2="580" y2="200" stroke="#1c1c2e" stroke-width="1"/>
+          <text x="30" y="225" fill="#6a6a82" font-size="9">LLM</text>
+          <text x="220" y="225" text-anchor="middle" fill="#6a6a82" font-size="9">Gemini</text>
+          <text x="390" y="225" text-anchor="middle" fill="#6a6a82" font-size="9">Groq</text>
+          <text x="540" y="225" text-anchor="middle" fill="#6a6a82" font-size="9">Gemini</text>
+          <text x="30" y="245" fill="#6a6a82" font-size="9">Store</text>
+          <text x="220" y="245" text-anchor="middle" fill="#6a6a82" font-size="9">KV</text>
+          <text x="390" y="245" text-anchor="middle" fill="#6a6a82" font-size="9">KV</text>
+          <text x="540" y="245" text-anchor="middle" fill="#6a6a82" font-size="9">KV + D1</text>
+          <text x="30" y="265" fill="#6a6a82" font-size="9">Dist</text>
+          <text x="220" y="265" text-anchor="middle" fill="#6a6a82" font-size="9">CI/CD + API</text>
+          <text x="390" y="265" text-anchor="middle" fill="#6a6a82" font-size="9">VS Code + GH</text>
+          <text x="540" y="265" text-anchor="middle" fill="#6a6a82" font-size="9">API + Webhooks</text>
+        </svg>
+      </div>
+
+      <!-- Section 5 -->
+      <section class="chapter" id="s5">
+        <h2>Lock the Edges</h2>
+        <ol>
+          <li><strong>Map your tool graph.</strong> Before your next agent deployment, inventory every tool, API, and data source the agent can reach — not what it uses, what it can access. The gap between those two sets is your attack surface. AgentGraph automates this mapping by scanning MCP configurations and extracting the full permission graph.</li>
+          <li><strong>Apply least privilege at the tool level.</strong> Every tool permission should be scoped to the minimum required for the agent's function. Use PermissionLens or similar scanners to identify excessive permissions in your MCP server configurations before they ship.</li>
+          <li><strong>Instrument the affordance, not just the action.</strong> Your audit trail should log what the agent could have done at each decision point, not just what it chose. This is the difference between "agent called file_search" and "agent called file_search, but had access to file_delete, database_write, and shell_execute." AuditTrail generates these affordance-level logs automatically.</li>
+          <li><strong>Add circuit breakers to tool calls.</strong> Just as you wouldn't let a microservice make unlimited database calls without a circuit breaker, don't let an AI agent make unlimited tool calls without rate limits, scope checks, and escalation gates. The tool graph should have its own error budget.</li>
+        </ol>
+      </section>
+
+      <!-- Section 6 -->
+      <section class="chapter" id="s6">
+        <h2>Count the Tools</h2>
+        <p>Open your most-used AI agent's configuration file right now. Count the tools it has access to. Then count how many of those tools it actually used in the last 24 hours. The difference is your unguarded blast radius.</p>
+      </section>
+
+      <!-- Recall Cards -->
+      <div class="diagram-container">
+        <h3>Retrieval Practice</h3>
+        <div class="recall-grid" id="recall-grid">
+          <div class="recall-card" onclick="flipCard(this)" data-idx="0">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">
+                <span class="q-label">Question</span>
+                <span class="q-text">What determines the blast radius of an AI agent compromise?</span>
+              </div>
+              <div class="recall-card-back">
+                <span class="a-label">Answer</span>
+                <span class="a-text">The tool permission graph — the set of affordances the agent has at any moment, not the prompt it received.</span>
+              </div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)" data-idx="1">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">
+                <span class="q-label">Question</span>
+                <span class="q-text">What did the Trail of Bits MCP analysis identify as the core security gap?</span>
+              </div>
+              <div class="recall-card-back">
+                <span class="a-label">Answer</span>
+                <span class="a-text">The MCP protocol assumes trust between client and server with no verification layer — no tool-level access control, no permission scoping, no audit logging.</span>
+              </div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)" data-idx="2">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">
+                <span class="q-label">Question</span>
+                <span class="q-text">What is the OWASP "Excessive Agency" category?</span>
+              </div>
+              <div class="recall-card-back">
+                <span class="a-label">Answer</span>
+                <span class="a-text">A category for AI agents that have more permissions than their function requires — the problem isn't that the agent is malicious, but that it has affordances it shouldn't.</span>
+              </div>
+            </div>
+          </div>
+          <div class="recall-card" onclick="flipCard(this)" data-idx="3">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">
+                <span class="q-label">Question</span>
+                <span class="q-text">What's the difference between logging decisions and logging affordances?</span>
+              </div>
+              <div class="recall-card-back">
+                <span class="a-label">Answer</span>
+                <span class="a-text">Logging decisions tells you what the agent did; logging affordances tells you what it could have done at each decision point — including every tool it had access to but didn't use.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="recall-progress">
+          <span id="recall-count">0</span> of 4 reviewed
+          <div class="recall-progress-bar"><div class="recall-progress-fill" id="recall-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Social Share -->
+      <div class="share-block">
+        <span>Share this perspective:</span>
+        <a class="share-btn" id="share-x" href="#" target="_blank" rel="noopener">𝕏 Post</a>
+        <a class="share-btn" id="share-li" href="#" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="citations">
+    <strong>Sources:</strong> Trail of Bits, "MCP Security Analysis" (2025) · Invariant Labs, "MCP Prompt Injection Research" (2025) · OWASP Foundation, "Top 10 for LLMs 2025" · MarketsandMarkets, "AI Security Market" (2024) · Lakera Series A, TechCrunch (2024)
+  </div>
+  <div class="footer-links">
+    <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">↑ Top</a>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+  </div>
+</footer>
+
+<script>
+// Progress bar
+const progress = document.getElementById('progress');
+const updateProgress = () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  const s = window.scrollY;
+  progress.style.width = h > 0 ? (s / h * 100) + '%' : '0%';
+};
+window.addEventListener('scroll', updateProgress, {passive: true});
+
+// Rail active state
+const sections = document.querySelectorAll('.chapter');
+const railLinks = document.querySelectorAll('#rail a');
+const updateActiveRail = () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  railLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+};
+window.addEventListener('scroll', updateActiveRail, {passive: true});
+
+// Mobile rail toggle
+const rail = document.getElementById('rail');
+const scrim = document.getElementById('scrim');
+const hamburger = document.getElementById('hamburger');
+function toggleRail() {
+  rail.classList.toggle('open');
+  scrim.classList.toggle('open');
+}
+function closeRail() {
+  rail.classList.remove('open');
+  scrim.classList.remove('open');
+}
+
+// SVG tooltips
+document.querySelectorAll('.diagram-container svg .layer, .diagram-container svg .node').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    const tip = el.closest('.diagram-container').querySelector('.diagram-tooltip');
+    if (tip && el.dataset.tip) {
+      tip.textContent = el.dataset.tip;
+      tip.style.opacity = '1';
+    }
+  });
+  el.addEventListener('mousemove', e => {
+    const tip = el.closest('.diagram-container').querySelector('.diagram-tooltip');
+    if (tip) {
+      tip.style.left = e.clientX + 12 + 'px';
+      tip.style.top = e.clientY - 10 + 'px';
+    }
+  });
+  el.addEventListener('mouseleave', e => {
+    const tip = el.closest('.diagram-container').querySelector('.diagram-tooltip');
+    if (tip) tip.style.opacity = '0';
+  });
+  // Touch support
+  el.addEventListener('touchstart', e => {
+    const tip = el.closest('.diagram-container').querySelector('.diagram-tooltip');
+    if (tip && el.dataset.tip) {
+      tip.textContent = el.dataset.tip;
+      tip.style.opacity = '1';
+      const touch = e.touches[0];
+      tip.style.left = touch.clientX + 12 + 'px';
+      tip.style.top = touch.clientY - 10 + 'px';
+      setTimeout(() => tip.style.opacity = '0', 3000);
+    }
+  });
+});
+
+// Recall cards
+const flippedCards = new Set();
+function flipCard(card) {
+  card.classList.toggle('flipped');
+  const idx = card.dataset.idx;
+  if (card.classList.contains('flipped')) {
+    flippedCards.add(idx);
+  }
+  document.getElementById('recall-count').textContent = flippedCards.size;
+  document.getElementById('recall-fill').style.width = (flippedCards.size / 4 * 100) + '%';
+}
+
+// Social share
+const shareText = encodeURIComponent("Your AI agent security model is backwards — you're guarding the prompt when you should be guarding the tool graph. The blast radius isn't what you tell the agent, it's what the agent can reach.");
+const shareUrl = encodeURIComponent(window.location.href);
+document.getElementById('share-x').href = `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`;
+document.getElementById('share-li').href = `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`;
+
+// Reduced motion check
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (prefersReducedMotion) {
+  document.querySelectorAll('.recall-card-inner').forEach(el => {
+    el.style.transition = 'none';
+  });
+}
+</script>
+</body>
+</html>
