@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blind Spots Bleed Black | Agentic Infra Weekly</title>
+<style>
+  :root {
+    --max: 660px;
+    --bg: #0a0a0a;
+    --fg: #e0e0e0;
+    --muted: #888;
+    --accent: #ff4a4a;
+    --accent2: #4a90ff;
+    --card: #141414;
+    --border: #222;
+    --glass: rgba(20, 20, 20, 0.85);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  
+  #progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    z-index: 1000; transition: width 0.1s ease-out;
+  }
+  
+  #topbar {
+    position: sticky; top: 0; background: var(--glass);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border); z-index: 999;
+    padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 15px; }
+  .hamburger { display: none; cursor: pointer; font-size: 1.5rem; }
+  .breadcrumb { color: var(--muted); font-size: 0.9rem; }
+  .reading-time { font-size: 0.8rem; color: var(--muted); }
+  
+  .wrap {
+    display: grid; grid-template-columns: 220px 1fr; 
+    max-width: calc(var(--max) + 260px); margin: 0 auto; gap: 40px;
+    padding: 0 20px;
+  }
+  
+  #rail {
+    position: sticky; top: 100px; height: fit-content;
+    padding-top: 40px; counter-reset: rail-counter;
+  }
+  #rail a {
+    display: block; color: var(--muted); padding: 8px 0; font-size: 0.9rem;
+    border-left: 2px solid transparent; padding-left: 15px;
+  }
+  #rail a::before {
+    counter-increment: rail-counter; content: counter(rail-counter) ". ";
+    color: var(--accent); font-weight: bold;
+  }
+  #rail a:hover { color: var(--fg); border-color: var(--accent2); }
+  
+  main { max-width: var(--max); padding-top: 40px; }
+  
+  header { margin-bottom: 40px; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.1; margin-bottom: 15px; }
+  
+  .chapter { margin-bottom: 60px; scroll-margin-top: 100px; }
+  h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--fg); }
+  
+  p { margin-bottom: 1.2rem; color: #ccc; }
+  
+  blockquote {
+    border-left: 4px solid var(--accent); margin: 2rem 0; padding: 1rem 1.5rem;
+    background: var(--card); font-size: 1.1rem; font-weight: 500; color: var(--fg);
+  }
+  
+  .spectrum {
+    height: 40px; border-radius: 6px; margin: 30px 0;
+    background: linear-gradient(90deg, #333 0%, #555 50%, var(--accent2) 50%, var(--accent) 100%);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+    font-size: 0.8rem; font-weight: bold; text-transform: uppercase;
+  }
+  
+  .flip-card {
+    perspective: 1000px; height: 150px; margin: 20px 0; cursor: pointer;
+  }
+  .flip-inner {
+    position: relative; width: 100%; height: 100%; transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back {
+    position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    padding: 15px; text-align: center; border: 1px solid var(--border);
+  }
+  .flip-front { background: var(--card); color: var(--accent2); }
+  .flip-back { background: #1a1a1a; transform: rotateY(180deg); color: var(--fg); }
+  
+  .svg-diagram { width: 100%; margin: 30px 0; }
+  .svg-node { fill: var(--card); stroke: var(--border); stroke-width: 2; transition: all 0.3s; cursor: pointer; }
+  .svg-node:hover { fill: #222; stroke: var(--accent2); }
+  .svg-text { fill: var(--fg); font-size: 12px; pointer-events: none; }
+  
+  .share-block { display: flex; gap: 10px; margin: 30px 0; }
+  .share-btn {
+    padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 0.9rem;
+    transition: transform 0.2s; border: none; cursor: pointer;
+  }
+  .share-btn:hover { transform: translateY(-2px); }
+  .share-twitter { background: #000; color: #fff; border: 1px solid #fff; }
+  .share-linkedin { background: #0077b5; color: #fff; }
+  
+  footer {
+    border-top: 1px solid var(--border); margin-top: 60px; padding: 30px 0;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+  }
+  .citations { font-size: 0.8rem; color: var(--muted); flex: 1; min-width: 200px; }
+  .footer-links { display: flex; gap: 20px; }
+  
+  #scrim {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 998; display: none;
+  }
+  #scrim.active { display: block; }
+  
+  @media (max-width: 880px) {
+    .wrap { grid-template-columns: 1fr; }
+    .hamburger { display: block; }
+    #rail {
+      position: fixed; top: 0; left: -260px; width: 260px; height: 100%;
+      background: #111; padding-top: 60px; z-index: 999; transition: left 0.3s;
+      border-right: 1px solid var(--border);
+    }
+    #rail.active { left: 0; }
+    #rail a { padding: 15px; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<nav id="topbar">
+  <div class="topbar-left">
+    <div class="hamburger" onclick="toggleRail()">☰</div>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+    <span class="breadcrumb">/ Blind Spots Bleed Black</span>
+  </div>
+  <div class="reading-time">5 min read</div>
+</nav>
+
+<div id="scrim" onclick="toggleRail()"></div>
+
+<div class="wrap">
+  <div id="rail">
+    <a href="#s1">When Bots Lie</a>
+    <a href="#s2">The Harness, Not The Model</a>
+    <a href="#s3">Tracing Ghosts</a>
+    <a href="#s4">The Latency Tax</a>
+    <a href="#s5">Actionable Guardrails</a>
+    <a href="#s6">Test The Shadows</a>
+  </div>
+  
+  <main>
+    <header>
+      <h1>Blind Spots Bleed Black</h1>
+      <div class="spectrum">
+        <span>Old Model: Trace Pipes</span>
+        <span>New Model: Semantic State</span>
+      </div>
+    </header>
+
+    <section class="chapter" id="s1">
+      <h2>When Bots Lie</h2>
+      <p>In October 2024, a developer opened the Cursor IDE to find a pop-up from the support bot. It cheerfully explained that due to a recent system update, all their local files and cloud syncs had been permanently deleted. Panic ensued. Support tickets flooded in. Users frantically backed up data. But there was no system update. No data was deleted. The AI support bot, running on Anthropic’s Claude API via Zendesk, had entirely fabricated the event.</p>
+      <p>The infrastructure was perfectly healthy. The API returned 200 OK. Latency was low. The database was intact. Yet, the system suffered a catastrophic failure of truth.</p>
+      <p>This is the silent killer of AI in production. We instrumented our traditional applications to track four golden signals—latency, traffic, errors, saturation. We extended that to LLMs by logging token counts and prompt lengths. But we are completely blind to the actual semantic output. AI observability setups alert on the wrong signal because they monitor the pipes, not the water.</p>
+    </section>
+
+    <section class="chapter" id="s2">
+      <h2>The Harness, Not The Model</h2>
+      <p>The Bold Reframe is this: <strong>AI observability isn't about tracing what the model did; it's about observing what the harness allowed it to do.</strong></p>
+      <p>We spend millions tuning model parameters, yet we treat the surrounding application code—the prompt templates, the context injection, the tool-calling logic—as static infrastructure. When a model hallucinates, it is rarely a failure of the base model's weights. It is a failure of the harness to constrain, validate, or sanitize the model's environment.</p>
+      <p>Consider the GitLab Duo postmortem in November 2024. Researchers found that GitLab Duo was vulnerable to prompt injections hidden within repository code. A malicious script in a README tricked the LLM into generating malicious merge request summaries. The infrastructure layer—GKE, ArgoCD, Postgres—was functioning perfectly. The failure was in the data provenance: the harness blindly fed untrusted repository text into the prompt context without sanitization.</p>
+      <p>Traditional observability tools track the API call to Claude or OpenAI. They show you that the call succeeded. They do not show you that the harness just injected a malicious payload.</p>
+    </section>
+
+    <section class="chapter" id="s3">
+      <h2>Tracing Ghosts</h2>
+      <p>We are trying to debug semantic failures using infrastructure metrics. It doesn't work.</p>
+      <blockquote>You don't debug a hallucination with a stack trace.</blockquote>
+      <p>When Apple Intelligence summarized BBC News notifications in December 2024, it generated a false headline about a murder suspect shooting himself. BBC formally complained. Apple had deployed a massive edge infrastructure of NPUs and sophisticated iOS sandboxes. Their telemetry likely showed zero crashes and excellent battery life. But they lacked a semantic validation layer—a way to measure the factual drift of the output against the input.</p>
+      <p>The systems-thinking methodology missing here is the semantic error budget. In SRE, we accept a certain percentage of errors to balance reliability and feature velocity. With LLMs, we need to define acceptable semantic drift. If a summarization model alters the core meaning of a document beyond an acceptable threshold, that is an error, even if the HTTP status is 200.</p>
+      
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-front">What is a Semantic Error Budget?</div>
+          <div class="flip-back">An SRE concept adapted for LLMs: the acceptable threshold of factual drift or hallucination rate before the system alerts or rolls back.</div>
+        </div>
+      </div>
+
+      <svg class="svg-diagram" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <rect class="svg-node" x="10" y="80" width="80" height="40" rx="5"><title>Source Data (Untrusted)</title></rect>
+        <text class="svg-text" x="20" y="105">Source Data</text>
+        
+        <rect class="svg-node" x="110" y="80" width="80" height="40" rx="5"><title>Prompt Template (Harness)</title></rect>
+        <text class="svg-text" x="120" y="105">Harness</text>
+        
+        <rect class="svg-node" x="210" y="80" width="80" height="40" rx="5"><title>LLM API (Model)</title></rect>
+        <text class="svg-text" x="235" y="105">LLM API</text>
+        
+        <rect class="svg-node" x="310" y="80" width="80" height="40" rx="5"><title>Traditional Observability (Blind)</title></rect>
+        <text class="svg-text" x="315" y="105">Legacy Trace</text>
+        
+        <line x1="90" y1="100" x2="110" y2="100" stroke="#888" stroke-width="2"/>
+        <line x1="190" y1="100" x2="210" y2="100" stroke="#888" stroke-width="2"/>
+        <line x1="290" y1="100" x2="310" y2="100" stroke="#888" stroke-width="2"/>
+        
+        <text class="svg-text" x="150" y="160" fill="#ff4a4a">Click nodes to inspect. Legacy traces only see the endpoint, missing the payload context.</text>
+      </svg>
+    </section>
+
+    <section class="chapter" id="s4">
+      <h2>The Latency Tax</h2>
+      <p>The strongest counterargument to semantic observability is latency. Evaluating an LLM's output requires another LLM—as-a-judge—which doubles the inference cost and adds seconds of latency to every request. In user-facing chat applications, this is a non-starter.</p>
+      <p>But observability doesn't have to be synchronous. You don't need to block the user response to validate it. You can run asynchronous, edge-cached validations on a sampled percentage of traffic. Cloudflare Workers can intercept the response, ship it to a Groq free-tier API for rapid semantic grading, and log the score. If the semantic error budget depletes, you alert.</p>
+    </section>
+
+    <section class="chapter" id="s5">
+      <h2>Actionable Guardrails</h2>
+      <p>To fix this, platform engineers must rethink their AI pipelines.</p>
+      <p>First, implement semantic diffing on high-stakes outputs. If your AI is summarizing documents or generating support replies, run a background check comparing the core entities in the output against the source context. Tools like PromptGuard can be embedded directly into your CI/CD pipeline to catch regressions before deployment.</p>
+      <p>Second, treat prompt templates as critical infrastructure. A prompt template is not a string; it is an execution context. Version control it. Monitor its inputs. If your template injects untrusted user data into the system prompt, you have a remote code execution vulnerability in your LLM.</p>
+      <p>Third, deploy adversarial CI checks. Use tools like CanaryLLM to throw prompt injection attacks at your staging environment. If the harness allows unauthorized tool calls, fail the build.</p>
+    </section>
+
+    <section class="chapter" id="s6">
+      <h2>Test The Shadows</h2>
+      <p>Your infrastructure is too healthy to fail, and that is exactly the problem. Stop monitoring the API latency and start monitoring the truth.</p>
+      <blockquote>Map your highest-traffic AI endpoint and inject a synthetic factual test case into your live pipeline today. If your observability stack doesn't flag when the model lies, you don't have observability—you just have a dashboard waiting for a postmortem.</blockquote>
+    </section>
+
+    <div class="share-block">
+      <a class="share-btn share-twitter" target="_blank" onclick="shareTwitter()">Share on X</a>
+      <a class="share-btn share-linkedin" target="_blank" onclick="shareLinkedIn()">Share on LinkedIn</a>
+    </div>
+
+    <footer>
+      <div class="citations">
+        Sources: Cursor CEO statements (Oct 2024); GitLab Security Release (Nov 2024); BBC News Reporting (Dec 2024).
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="scrollTop()">Back to Top</a>
+        <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Progress Bar
+  window.addEventListener('scroll', () => {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollTop = window.scrollY;
+    const progress = (scrollTop / scrollHeight) * 100;
+    document.getElementById('progress').style.width = progress + '%';
+  });
+
+  // Mobile Rail
+  function toggleRail() {
+    document.getElementById('rail').classList.toggle('active');
+    document.getElementById('scrim').classList.toggle('active');
+  }
+
+  // Smooth Scroll Top
+  function scrollTop(e) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Share Functions
+  function shareTwitter() {
+    const text = "AI observability is broken because we monitor the pipes, not the water. You don't debug a hallucination with a stack trace.";
+    const url = window.location.href;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  }
+  
+  function shareLinkedIn() {
+    const url = window.location.href;
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+  }
+</script>
+</body>
+</html>
