@@ -9,6 +9,15 @@
     "research_window": "2025-03-10 to 2025-03-16"
   },
   {
+  "week": 27,
+  "date": "2026-07-03",
+  "filename": "articles/mind-the-gap.html",
+  "title": "Mind the Gap",
+  "topic": "Observability",
+  "bold_reframe": "Direct — AI observability fails because we monitor the plumbing (HTTP 200s) instead of the water (semantic success).",
+  "research_window": "2026-05-04 to 2026-05-10"
+},
+  {
     "week": 21,
     "date": "2024-05-22",
     "filename": "articles/watching-the-wrong-dial.html",
