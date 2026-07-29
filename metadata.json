@@ -44,6 +44,7 @@
   "bold_reframe": "Direct — AI observability fails because we monitor the plumbing (HTTP 200s) instead of the water (semantic success).",
   "research_window": "2026-05-04 to 2026-05-10"
 },
+
   {
   "week": 26,
   "date": "2026-06-22",
@@ -62,7 +63,15 @@
     "bold_reframe": "A syntactically valid response containing a semantic failure is a 500-level error for your business logic; observability must shift from infrastructure uptime to semantic integrity.",
     "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
   },
-  {
+    {
+  "week": 23,
+  "date": "2026-06-01",
+  "filename": "articles/pave-dont-pick.html",
+  "title": "Pave, Don't Pick",
+  "topic": "Developer Enablement",
+  "bold_reframe": "Developer platforms that accelerate shipping don't give engineers more choices — they give them fewer decisions",
+  "research_window": "2026-02-23 to 2026-06-07"
+},  {
     "week": 21,
     "date": "2024-05-21",
     "filename": "articles/automating-the-outage.html",
@@ -71,6 +80,15 @@
     "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
     "research_window": "2024-03-25 to 2024-03-31"
   },
+  {
+  "week": 20,
+  "date": "2026-05-11",
+  "filename": "articles/wolves-at-the-door.html",
+  "title": "Wolves at the Door",
+  "topic": "Security & Governance: agent-to-tool access, least privilege, audit trails for autonomous systems",
+  "bold_reframe": "We are building autonomous systems with user-level permissions but API-level oversight, effectively giving them keys to the kingdom and a blindfold.",
+  "research_window": "2026-02-23 to 2026-05-17"
+},
   {
     "week": 14,
     "date": "2026-07-29",
