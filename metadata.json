@@ -1,21 +1,12 @@
 [
   {
-    "week": 14,
+    "week": 31,
     "date": "2026-07-29",
-    "filename": "articles/mind-the-gap.html",
-    "title": "Mind the Gap",
+    "filename": "articles/harness-over-horsepower.html",
+    "title": "Harness Over Horsepower",
     "topic": "Observability",
-    "bold_reframe": "Direct — the gateway product exists because the routing layer is the real production bottleneck.",
-    "research_window": "2026-01-26 to 2026-07-26"
-  },
-  {
-    "week": 21,
-    "date": "2024-05-21",
-    "filename": "articles/automating-the-outage.html",
-    "title": "Automating the Outage",
-    "topic": "Kubernetes & DevOps",
-    "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
-    "research_window": "2024-03-25 to 2024-03-31"
+    "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
+    "research_window": "2025-03-10 to 2025-03-16"
   },
   {
     "week": 21,
@@ -27,12 +18,21 @@
     "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
   },
   {
-    "week": 31,
+    "week": 21,
+    "date": "2024-05-21",
+    "filename": "articles/automating-the-outage.html",
+    "title": "Automating the Outage",
+    "topic": "Kubernetes & DevOps",
+    "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
+    "research_window": "2024-03-25 to 2024-03-31"
+  },
+  {
+    "week": 14,
     "date": "2026-07-29",
-    "filename": "articles/harness-over-horsepower.html",
-    "title": "Harness Over Horsepower",
+    "filename": "articles/mind-the-gap.html",
+    "title": "Mind the Gap",
     "topic": "Observability",
-    "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
-    "research_window": "2025-03-10 to 2025-03-16"
+    "bold_reframe": "Direct — the gateway product exists because the routing layer is the real production bottleneck.",
+    "research_window": "2026-01-26 to 2026-07-26"
   }
 ]
