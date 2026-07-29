@@ -11,7 +11,7 @@
   {
     "week": 31,
     "date": "2026-07-29",
-    "filename": "mind-the-gap.html",
+    "filename": "articles/mind-the-gap.html",
     "title": "Mind the Gap",
     "topic": "Observability",
     "bold_reframe": "Direct — the gateway product exists because the routing layer is the real production bottleneck.",
@@ -20,7 +20,7 @@
   {
     "week": 31,
     "date": "2026-07-29",
-    "filename": "harness-over-horsepower.html",
+    "filename": "articles/harness-over-horsepower.html",
     "title": "Harness Over Horsepower",
     "topic": "Observability",
     "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
