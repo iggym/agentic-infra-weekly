@@ -9,6 +9,15 @@
     "research_window": "2025-03-10 to 2025-03-16"
   },
   {
+  "week": "28",
+  "date": "2026-07-06",
+  "filename": "articles/2026-07-06-the-drift-you-cant-see.html",
+  "title": "The Drift You Can't See",
+  "topic": "AI Systems Engineering",
+  "bold_reframe": "Your AI observability stack is watching the infrastructure, not the intelligence.",
+  "research_window": "2026-07-06 to 2026-07-12"
+},
+  {
   "week": 30,
   "date": "2026-07-20",
   "filename": "articles/the-paved-path-paradox.html",
