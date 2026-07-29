@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blind Spots: AI Observability</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --fg: #eaeaea;
+  --muted: #888;
+  --accent: #ff4a4a;
+  --card-bg: #151515;
+  --glass: rgba(10, 10, 10, 0.85);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#progress {
+  position: fixed;
+  top: 0; left: 0; height: 4px;
+  background: linear-gradient(90deg, var(--accent), #ff8a8a);
+  width: 0%;
+  z-index: 1000;
+  transition: width 0.1s ease-out;
+}
+
+#topbar {
+  position: sticky; top: 0;
+  background: var(--glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #222;
+  padding: 1rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 999;
+}
+#topbar nav { display: flex; gap: 1rem; align-items: center; font-size: 0.9rem; }
+#topbar a { color: var(--fg); text-decoration: none; opacity: 0.8; transition: opacity 0.2s; }
+#topbar a:hover { opacity: 1; }
+.hamburger { display: none; background: none; border: none; color: var(--fg); font-size: 1.5rem; cursor: pointer; }
+
+.wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  max-width: calc(660px + 260px);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+#rail {
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+  padding: 2rem 1rem 2rem 0;
+  border-right: 1px solid #222;
+  counter-reset: rail-counter;
+}
+#rail a {
+  display: block; color: var(--muted); text-decoration: none;
+  font-size: 0.9rem; padding: 0.5rem 0;
+  transition: color 0.2s;
+}
+#rail a::before {
+  counter-increment: rail-counter;
+  content: counter(rail-counter) ". ";
+  color: var(--accent); margin-right: 0.5rem;
+}
+#rail a:hover { color: var(--fg); }
+
+main {
+  max-width: 660px;
+  padding: 2rem 0 4rem 2rem;
+}
+article p, article li { margin-bottom: 1.2rem; font-size: 1.1rem; color: #d4d4d4; }
+article h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 2rem 0 1rem; line-height: 1.1; }
+article h2 { font-size: 1.8rem; margin: 3rem 0 1.5rem; color: var(--fg); }
+article h3 { font-size: 1.4rem; margin: 2rem 0 1rem; color: var(--fg); }
+
+.spectrum {
+  height: 40px; border-radius: 20px;
+  background: linear-gradient(90deg, #4a90e2 0%, #9b59b6 50%, #ff4a4a 100%);
+  margin: 2rem 0; position: relative;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 1rem; font-size: 0.8rem; color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.spectrum::after {
+  content: "Behavioral Visibility"; position: absolute;
+  right: -120px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-weight: bold;
+}
+
+blockquote {
+  border-left: 4px solid var(--accent);
+  padding: 1rem 1.5rem; margin: 2rem 0;
+  background: var(--card-bg); font-size: 1.3rem; font-weight: 500;
+  font-style: italic; color: var(--fg);
+}
+
+.arch-diagram {
+  width: 100%; height: 300px; background: var(--card-bg);
+  border-radius: 8px; margin: 2rem 0; display: block;
+}
+.arch-layer { transition: opacity 0.3s, transform 0.3s; cursor: pointer; transform-origin: center; }
+.arch-layer:hover { opacity: 0.7; transform: scale(1.02); }
+
+.recall-card {
+  background: var(--card-bg); border-radius: 8px; padding: 1.5rem;
+  margin: 2rem 0; cursor: pointer; transition: transform 0.3s;
+  border: 1px solid #333;
+}
+.recall-card:hover { border-color: var(--accent); }
+.recall-card .answer { display: none; color: var(--accent); margin-top: 1rem; }
+.recall-card.flipped .answer { display: block; }
+.recall-card.flipped .question { opacity: 0.5; }
+
+.share-block { display: flex; gap: 1rem; margin: 3rem 0; }
+.share-btn {
+  padding: 0.5rem 1rem; border: 1px solid #333; background: transparent;
+  color: var(--fg); border-radius: 4px; cursor: pointer; text-decoration: none;
+  font-size: 0.9rem; transition: background 0.2s;
+}
+.share-btn:hover { background: var(--card-bg); }
+
+footer {
+  background: #050505; padding: 3rem 2rem; margin-top: 4rem;
+  border-top: 1px solid #222;
+  display: flex; flex-direction: column; gap: 1.5rem; align-items: center;
+}
+footer .citations { font-size: 0.8rem; color: var(--muted); max-width: 660px; }
+footer .citations strong { color: var(--fg); }
+footer a { color: var(--accent); text-decoration: none; }
+
+#scrim {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); z-index: 998; display: none;
+}
+#scrim.active { display: block; }
+
+@media (max-width: 880px) {
+  .wrap { grid-template-columns: 1fr; padding: 0 1rem; }
+  #rail {
+    position: fixed; top: 0; left: -260px; height: 100vh;
+    background: #111; width: 260px; z-index: 999;
+    padding: 4rem 1rem; transition: left 0.3s ease; border-right: none;
+  }
+  #rail.active { left: 0; }
+  .hamburger { display: block; }
+  main { padding: 2rem 0 4rem 0; }
+  .spectrum::after { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="scrim"></div>
+
+<header id="topbar">
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <button class="hamburger" id="hamburger">☰</button>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+  </div>
+  <nav>
+    <span id="breadcrumb">/ Blind Spots</span>
+    <span style="opacity:0.5;">|</span>
+    <span>7 min read</span>
+  </nav>
+</header>
+
+<div class="wrap">
+  <aside id="rail">
+    <a href="#s1">The Agent's Ghost</a>
+    <a href="#s2">Connecting The Dots</a>
+    <a href="#s3">Credibility And Caveats</a>
+    <a href="#s4">Taking The Reins</a>
+    <a href="#s5">Open Your Eyes</a>
+  </aside>
+
+  <main>
+    <article>
+      <h1>Blind Spots</h1>
+      <p>In early 2024, GitLab integrated Duo, an AI assistant, directly into developer workflows. The feature was widely adopted, but suddenly, response times crawled to a halt. Developers stared at spinning loading icons. When the engineering team checked their standard dashboards, everything looked green—CPU utilization was nominal, memory was stable, and the pods were running. The system was technically "up," but the AI was functionally down.</p>
+      <p>What happened wasn't a server crash. The AI model was caught in a silent retry loop. When the underlying LLM provider failed to return a satisfactory payload, the agent automatically retried the request. These retries compounded, eventually triggering external rate limits and cascading into a full-scale degradation of service. Traditional monitors saw a healthy endpoint; the reality was an agent drowning in its own automated persistence.</p>
+
+      <section class="chapter" id="s1" style="scroll-margin-top: 100px;">
+        <h2>The Agent's Ghost</h2>
+        <p>Stop monitoring your LLMs like web servers. Agents don't crash; they hallucinate, loop, and confidently fail. Standard application performance monitoring (APM) is fundamentally blind to this. We have spent a decade optimizing for the four golden signals—latency, traffic, errors, and saturation. But an agent returning a perfectly formatted, 200 OK JSON response that confidently instructs a user to violate a refund policy is a catastrophic failure, not a success.</p>
+        <p>When Klarna deployed their AI customer service assistant, it handled millions of chats with speed that radically reduced resolution times. By standard metrics, it was a triumph. But beneath the surface, the agent was hallucinating edge-case policies. Because the observability stack only tracked throughput and duration, the semantic failures went unnoticed until human agents had to clean up the mess. We are building autonomous reasoning engines and evaluating them with dashboards designed for stateless web servers. It is like checking a car's engine oil while the driver steers off a cliff.</p>
+        <div class="spectrum">
+          <span>Infra Metrics</span>
+          <span>Payload Tracing</span>
+          <span>Semantic Evals</span>
+        </div>
+      </section>
+
+      <section class="chapter" id="s2" style="scroll-margin-top: 100px;">
+        <h2>Connecting The Dots</h2>
+        <p>The missing link in AI platform architecture is behavioral observability. You cannot debug a reasoning loop with a latency percentile. When GitLab Duo choked on retry storms, the team had to implement deep OpenTelemetry tracing that followed the payload—not the network request—through the Ruby backend, into the Vertex AI call, and back. They had to observe the agent's <em>actions</em>, not just the server's <em>state</em>.</p>
+        <blockquote>A 200 OK is meaningless if the model is confidently lying.</blockquote>
+        <p>To build reliable AI, we must fuse our infrastructure traces with semantic evaluations. This means logging the actual prompt inputs, the chain-of-thought outputs, and running automated evals against them in real-time. The systems-thinking methodology at play here shifts from simple SRE error budgets to quality budgets. You aren't just tracking how often the endpoint fails; you are tracking how often the agent's reasoning falls below an acceptable threshold.</p>
+        
+        <svg class="arch-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <g class="arch-layer" data-info="User / Client">
+            <rect x="50" y="20" width="300" height="40" rx="5" fill="#333" />
+            <text x="200" y="45" text-anchor="middle" fill="white">User Request</text>
+          </g>
+          <g class="arch-layer" data-info="Cloudflare Worker / Rails API">
+            <rect x="50" y="70" width="300" height="40" rx="5" fill="#444" />
+            <text x="200" y="95" text-anchor="middle" fill="white">API Layer (GitLab Rails)</text>
+          </g>
+          <g class="arch-layer" data-info="Vertex AI / Gemini (Blind Spot)">
+            <rect x="50" y="120" width="300" height="40" rx="5" fill="#ff4a4a" opacity="0.3" />
+            <text x="200" y="145" text-anchor="middle" fill="white">LLM Proxy (Vertex AI)</text>
+          </g>
+          <g class="arch-layer" data-info="Datadog / OpenTelemetry (Missing Payloads)">
+            <rect x="50" y="170" width="300" height="40" rx="5" fill="#222" stroke="#444" />
+            <text x="200" y="195" text-anchor="middle" fill="#888">Standard Tracing</text>
+          </g>
+          <text x="200" y="250" text-anchor="middle" fill="#666">Hover to inspect layers</text>
+        </svg>
+      </section>
+
+      <section class="chapter" id="s3" style="scroll-margin-top: 100px;">
+        <h2>Credibility And Caveats</h2>
+        <p>The GitLab postmortem proves that without payload-level distributed tracing, AI agents will silently fail until they hit a hard infrastructure limit. Klarna's experience proves that optimizing for speed without semantic accuracy creates technical debt at the customer support layer. The methodology required is defense-in-depth applied to reasoning: tracing the infrastructure, evaluating the output, and enforcing idempotency so an agent doesn't trigger a refund loop three times.</p>
+        <p>The strongest counterargument is cost: "Running automated evaluations and logging full payloads on every request is too expensive and slow." But this ignores the power of shadow sampling. You can route 5% of traffic to an asynchronous evaluation pipeline using a fast, cheap model like Groq, catching hallucinations without adding latency to the user experience.</p>
+
+        <div class="recall-card" onclick="this.classList.toggle('flipped'); sessionStorage.setItem('card1', 'viewed');">
+          <div class="question"><strong>Recall Practice:</strong> Why did GitLab Duo's standard monitoring fail to catch the retry storm?</div>
+          <div class="answer"><em>Answer:</em> Standard monitors tracked pod health and network latency, but not the semantic payload loop. The endpoint returned 200 OKs while the agent silently retried LLM calls.</div>
+        </div>
+        <div class="recall-card" onclick="this.classList.toggle('flipped'); sessionStorage.setItem('card2', 'viewed');">
+          <div class="question"><strong>Recall Practice:</strong> What is the counterargument to real-time LLM evals, and how is it solved?</div>
+          <div class="answer"><em>Answer:</em> Cost and latency. Solved via shadow sampling (e.g., 5% of traffic) to an asynchronous pipeline using fast models like Groq.</div>
+        </div>
+      </section>
+
+      <section class="chapter" id="s4" style="scroll-margin-top: 100px;">
+        <h2>Taking The Reins</h2>
+        <p>You cannot afford blind spots in autonomous systems. First, implement a proxy layer for all LLM calls. Tools like Helicone or LangSmith allow you to inject a lightweight proxy that captures every prompt and completion without refactoring your core application. Second, stop treating prompts as static strings. Version control your prompts and tag your traces with the specific prompt version, just as GitLab tags releases. Third, establish quality budgets. If your LLM eval scores drop below a threshold, circuit break the agent and fall back to a deterministic flow.</p>
+      </section>
+
+      <section class="chapter" id="s5" style="scroll-margin-top: 100px;">
+        <h2>Open Your Eyes</h2>
+        <p>The era of treating AI as a simple API call is over. Route one LLM endpoint through a tracing proxy today, look inside the payload, and find the hallucinations hiding behind your 200 OKs.</p>
+      </section>
+
+      <div class="share-block">
+        <a href="https://twitter.com/intent/tweet?text=Stop%20monitoring%20LLMs%20like%20web%20servers.%20A%20200%20OK%20is%20useless%20if%20the%20model%20is%20confidently%20lying." target="_blank" class="share-btn">Share on X</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" class="share-btn" id="linkedin-share">Share on LinkedIn</a>
+      </div>
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="citations">
+    <p><strong>Sources:</strong> GitLab Engineering Blog (Duo incident review); TechCrunch / Klarna product release analysis (2024); LangChain/LangSmith documentation.</p>
+    <p><strong>Methodologies:</strong> SRE Error Budgets, Distributed Tracing, Progressive Delivery, Shadow Sampling.</p>
+  </div>
+  <div style="display:flex; gap:2rem;">
+    <a href="#" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">Back to Top</a>
+    <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+  </div>
+</footer>
+
+<script>
+// Progress Bar
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const progress = (scrollTop / scrollHeight) * 100;
+  document.getElementById('progress').style.width = progress + '%';
+});
+
+// Mobile Menu
+const hamburger = document.getElementById('hamburger');
+const rail = document.getElementById('rail');
+const scrim = document.getElementById('scrim');
+hamburger.addEventListener('click', () => {
+  rail.classList.toggle('active');
+  scrim.classList.toggle('active');
+});
+scrim.addEventListener('click', () => {
+  rail.classList.remove('active');
+  scrim.classList.remove('active');
+});
+
+// LinkedIn Share URL injection
+document.getElementById('linkedin-share').href = `https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`;
+
+// SVG Hover Annotations
+const layers = document.querySelectorAll('.arch-layer');
+layers.forEach(layer => {
+  layer.addEventListener('mouseenter', () => {
+    // Basic micro-interaction example
+    layer.style.filter = 'brightness(1.2)';
+  });
+  layer.addEventListener('mouseleave', () => {
+    layer.style.filter = 'none';
+  });
+});
+
+// Restore session state for recall cards
+if (sessionStorage.getItem('card1')) {
+  document.querySelectorAll('.recall-card')[0].style.borderColor = 'var(--accent)';
+}
+if (sessionStorage.getItem('card2')) {
+  document.querySelectorAll('.recall-card')[1].style.borderColor = 'var(--accent)';
+}
+</script>
+</body>
+</html>
