@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mind the Gap — Agentic Infra Weekly</title>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;--accent2:#3fb950;
+  --warn:#d29922;--err:#f85149;--max:660px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;scroll-behavior:auto!important}
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;font-size:1rem;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:9999;transition:width .1s}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(13,17,23,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;font-size:.85rem}
+#topbar .home{font-weight:700;color:var(--accent);white-space:nowrap}
+#topbar .crumb{color:var(--text2)}
+#topbar .crumb a{color:var(--text2)}
+#topbar .reading-time{margin-left:auto;color:var(--text2);white-space:nowrap}
+#hamburger{display:none;background:none;border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);cursor:pointer;font-size:1.1rem}
+.wrap{display:grid;grid-template-columns:220px 1fr;max-width:calc(var(--max) + 260px);margin:0 auto;gap:2rem;padding:2rem 1rem}
+#rail{position:sticky;top:100px;align-self:start;counter-reset:chapter;font-size:.85rem}
+#rail ol{list-style:none;padding:0}
+#rail li{counter-increment:chapter;margin-bottom:.5rem}
+#rail li::before{content:counter(chapter) ".";color:var(--accent);font-weight:700;margin-right:.4rem}
+#rail a{color:var(--text2);transition:color .2s}
+#rail a:hover,#rail a.active{color:var(--accent);text-decoration:none}
+main{min-width:0;max-width:var(--max)}
+.hero-title{font-size:clamp(2.1rem,5vw,3.1rem);font-weight:800;line-height:1.15;margin-bottom:.5rem;letter-spacing:-.02em}
+.hero-sub{color:var(--text2);font-size:1.05rem;margin-bottom:1.5rem}
+.chapter{scroll-margin-top:80px;margin-bottom:2.5rem}
+.chapter h2{font-size:1.35rem;font-weight:700;margin-bottom:1rem;color:var(--text);letter-spacing:-.01em}
+.chapter p{margin-bottom:1rem}
+.chapter ol,.chapter ul{margin:0 0 1rem 1.5rem}
+.chapter li{margin-bottom:.5rem}
+.chapter li strong{color:var(--accent)}
+.pull-quote{border-left:3px solid var(--accent);padding:.8rem 1.2rem;margin:1.5rem 0;background:var(--bg2);border-radius:0 6px 6px 0;font-size:1.15rem;font-weight:600;color:var(--accent)}
+.spectrum{margin:1.5rem 0;padding:1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px}
+.spectrum-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text2);margin-bottom:.5rem}
+.spectrum-bar{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--err),var(--warn),var(--accent2));position:relative}
+.spectrum-marker{position:absolute;top:-6px;width:4px;height:24px;background:var(--text);border-radius:2px;transition:left .3s}
+.svg-container{margin:1.5rem 0;overflow-x:auto}
+.svg-container svg{width:100%;max-width:660px;height:auto}
+.svg-container .layer-rect{cursor:pointer;transition:opacity .2s,stroke-width .2s}
+.svg-container .layer-rect:hover{opacity:.85}
+.svg-container .layer-rect.selected{stroke:#fff;stroke-width:3;opacity:1}
+.detail-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;margin-top:.8rem;min-height:60px;transition:opacity .2s}
+.detail-panel:empty{display:none}
+.detail-panel .dp-title{font-weight:700;font-size:1rem;margin-bottom:.4rem;color:var(--accent)}
+.detail-panel .dp-body{color:var(--text2);font-size:.9rem;line-height:1.6}
+.recall-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin:1.5rem 0}
+.recall-card{perspective:600px;height:180px;cursor:pointer}
+.recall-card-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.recall-card.flipped .recall-card-inner{transform:rotateY(180deg)}
+.recall-card-front,.recall-card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:8px;padding:1.2rem;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid var(--border)}
+.recall-card-front{background:var(--bg2);font-weight:600;font-size:.95rem}
+.recall-card-back{background:var(--bg3);transform:rotateY(180deg);font-size:.85rem;color:var(--text2);line-height:1.5}
+.recall-card-back .correct{color:var(--accent2);font-weight:700;margin-top:.5rem}
+.share-block{margin:2rem 0;display:flex;gap:.8rem;flex-wrap:wrap}
+.share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:.85rem;cursor:pointer;transition:background .2s,border-color .2s}
+.share-btn:hover{background:var(--bg3);border-color:var(--accent)}
+.concept-map{margin:1.5rem 0}
+.concept-map svg{width:100%;max-width:660px}
+.concept-map .node{cursor:pointer;transition:filter .2s}
+.concept-map .node:hover{filter:brightness(1.3)}
+.concept-map .node-label{font-size:12px;fill:var(--text);pointer-events:none}
+.concept-map .edge{stroke:var(--border);stroke-width:1.5;fill:none}
+footer{max-width:calc(var(--max) + 260px);margin:2rem auto;padding:2rem 1rem;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--text2)}
+footer .citations{flex:1 1 100%;margin-bottom:1rem;line-height:1.6}
+footer a{color:var(--text2)}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90;display:none}
+#scrim.active{display:block}
+@media(max-width:880px){
+  .wrap{grid-template-columns:1fr;padding:1rem}
+  #rail{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--bg2);z-index:95;padding:4rem 1.5rem 1rem;transform:translateX(-100%);transition:transform .3s;overflow-y:auto}
+  #rail.open{transform:translateX(0)}
+  #hamburger{display:block}
+  main{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header id="topbar">
+  <button id="hamburger" aria-label="Toggle navigation">&#9776;</button>
+  <a class="home" href="https://iggym.github.io/agentic-infra-weekly/">Agentic Infra Weekly</a>
+  <span class="crumb">&rsaquo; <a href="#">Mind the Gap</a></span>
+  <span class="reading-time" id="readingTime"></span>
+</header>
+
+<div id="scrim"></div>
+
+<div class="wrap">
+  <nav id="rail" aria-label="Chapter navigation">
+    <ol>
+      <li><a href="#s1">Opening Scene</a></li>
+      <li><a href="#s2">Harness Over Horse</a></li>
+      <li><a href="#s3">Hidden Wires</a></li>
+      <li><a href="#s4">Yes, But...</a></li>
+      <li><a href="#s5">Pave the Path</a></li>
+      <li><a href="#s6">Close the Gap</a></li>
+      <li><a href="#s-arch">Architecture</a></li>
+      <li><a href="#s-candidates">Candidates</a></li>
+      <li><a href="#s-recall">Recall Cards</a></li>
+      <li><a href="#s-concept">Concept Map</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <article>
+      <header>
+        <h1 class="hero-title">Mind the Gap</h1>
+        <p class="hero-sub">Why your model routing layer is the real production bottleneck &mdash; not the models themselves.</p>
+      </header>
+
+      <!-- Section 1: Opening Scene -->
+      <section class="chapter" id="s1">
+        <h2>Opening Scene</h2>
+        <p>On November 8, 2023, OpenAI's API went dark for hours. Every application that had hard-coded GPT-4 calls &mdash; no fallback, no cache, no alternative &mdash; showed its users error messages and spinning wheels. Meanwhile, teams that had built routing layers in front of their LLM calls fell back to Anthropic's Claude or Google's Gemini within milliseconds. Same outage. Completely different customer experience. The difference wasn't which model they'd chosen. It was whether they'd built the plumbing between the request and the response.</p>
+      </section>
+
+      <!-- Section 2: Harness Over Horse -->
+      <section class="chapter" id="s2">
+        <h2>Harness Over Horse</h2>
+        <p>Your model isn't your moat. Your routing layer is. The infrastructure that decides which model handles which request, when to cache a response, when to fall back to a cheaper provider, and when to reject a request outright &mdash; that's what determines whether your AI features are profitable, reliable, or even usable at scale. The model is the engine. The routing layer is the transmission. Nobody brags about their transmission, but you can't drive without one.</p>
+        <p>Cloudflare saw this gap early. Their AI Gateway product, launched in beta in 2023 and expanded through 2024, sits between applications and LLM APIs and provides caching, rate limiting, fallback routing, and per-request analytics. Cloudflare reported that over 100,000 developers routed LLM requests through the gateway within months of general availability <cite>[Cloudflare Blog, 2024]</cite>. The product isn't a model. It's not a framework. It's the plumbing that makes models work in production &mdash; and the adoption numbers prove the plumbing was missing.</p>
+        <p>The vLLM project at UC Berkeley demonstrated the same principle from a different angle. Their PagedAttention paper, published in 2023, showed that the bottleneck in LLM inference wasn't compute power &mdash; it was GPU memory management. By treating GPU memory like a virtual memory system with paging, vLLM achieved 2&ndash;4x throughput improvements over existing serving engines without changing the model at all <cite>[Kwon et al., 2023]</cite>. Roblox and Anyscale adopted vLLM for production inference, running it on Kubernetes with Ray Serve orchestrating GPU workloads on NVIDIA A100s and H100s. The insight: you can throw bigger GPUs at the problem, or you can fix the serving layer. The serving layer is cheaper and faster.</p>
+
+        <!-- Spectrum Widget -->
+        <div class="spectrum" role="img" aria-label="Spectrum from model-centric to routing-centric thinking">
+          <div class="spectrum-label"><span>Model-Centric</span><span>Routing-Centric</span></div>
+          <div class="spectrum-bar">
+            <div class="spectrum-marker" id="spectrumMarker" style="left:25%"></div>
+          </div>
+          <p style="text-align:center;font-size:.8rem;color:var(--text2);margin-top:.6rem">Where does your team sit? Drag the marker.</p>
+        </div>
+      </section>
+
+      <!-- Section 3: Hidden Wires -->
+      <section class="chapter" id="s3">
+        <h2>Hidden Wires</h2>
+        <p>These stories &mdash; a gateway product, a memory management paper, an outage that separated the prepared from the unprepared &mdash; look like different problems. They're not. They're all the same problem: the gap between model capability and production reality.</p>
+        <p>We treat model selection as the architectural decision. It's not. Model selection is a configuration choice. The architectural decision is what sits between your user's request and the model's response.</p>
+        <blockquote class="pull-quote">The routing layer is the real API contract.</blockquote>
+        <p>When you think of your routing layer as the API contract &mdash; the thing that guarantees latency, cost, and availability &mdash; you stop building features that depend on a specific model and start building features that depend on a specific capability. The model becomes swappable. The routing layer becomes the foundation.</p>
+        <p>The November 2023 OpenAI outage proved this in production. Companies that had built routing layers with circuit breakers &mdash; automatic fallback to Anthropic or Google when OpenAI returned errors &mdash; maintained service throughout the outage. LiteLLM, the open-source proxy providing unified access to over 100 LLM providers, saw a significant adoption surge in the weeks following the outage, reflected in GitHub stars, issues, and community discussion volume <cite>[LiteLLM GitHub, 2023]</cite>. Not because teams wanted more models. Because they wanted their features to survive.</p>
+      </section>
+
+      <!-- Section 4: Yes, But... -->
+      <section class="chapter" id="s4">
+        <h2>Yes, But...</h2>
+        <p>The strongest counterargument: "GPT-4 is better than GPT-3.5, and routing to a cheaper model degrades quality." True &mdash; for the hardest 15% of requests. For the other 85%, the quality difference is negligible and the cost difference is 10&ndash;30x. A routing layer that classifies request complexity and routes accordingly doesn't degrade quality &mdash; it preserves quality where it matters and saves money where it doesn't. The counterargument assumes all requests are equal. They're not.</p>
+      </section>
+
+      <!-- Section 5: Pave the Path -->
+      <section class="chapter" id="s5">
+        <h2>Pave the Path</h2>
+        <ol>
+          <li><strong>Audit your LLM call distribution.</strong> Pull the last 30 days of API logs. For each request, log the model called, token count, latency, and whether the response complexity justified the model. You'll likely find that most of your spend goes to simple requests hitting expensive models. LiteLLM's proxy can generate this audit in an afternoon.</li>
+          <li><strong>Build a three-tier routing rule.</strong> Classify incoming requests into simple (route to the cheapest capable model), moderate (mid-tier), and complex (your best model). You don't need ML to classify &mdash; prompt length and task type are usually sufficient. Deploy this as a Cloudflare Worker in front of your existing API calls.</li>
+          <li><strong>Add a circuit breaker.</strong> If your primary LLM provider returns three consecutive errors or exceeds your latency budget, automatically fall back to a secondary provider. Cloudflare AI Gateway provides this out of the box; LiteLLM provides it in open source.</li>
+          <li><strong>Instrument your routing layer.</strong> Add per-request metrics: model called, cost, latency, fallback triggered. Feed these into your existing observability stack &mdash; Prometheus, Datadog, or whatever you already run. You can't optimize what you can't see.</li>
+        </ol>
+      </section>
+
+      <!-- Section 6: Close the Gap -->
+      <section class="chapter" id="s6">
+        <h2>Close the Gap</h2>
+        <p>Open your LLM provider's usage dashboard right now. Sort by cost. Look at the top ten most expensive requests. Ask: did that request need GPT-4? If the answer is "I don't know," you've found your gap. Close it.</p>
+      </section>
+
+      <!-- ═══════════════════════════════════════ -->
+      <!-- Architecture — FIXED: click + detail panel -->
+      <!-- ═══════════════════════════════════════ -->
+      <section class="chapter" id="s-arch">
+        <h2>Architecture</h2>
+        <p>Cloudflare AI Gateway layered architecture &mdash; <strong>click any layer</strong> to see details.</p>
+        <div class="svg-container" id="archSvg">
+          <svg viewBox="0 0 660 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cloudflare AI Gateway layered architecture diagram">
+            <rect class="layer-rect" id="arch-infra" x="20" y="20" width="620" height="52" rx="6" fill="#1f6feb"
+              data-title="Infrastructure Layer"
+              data-body="Cloudflare global edge network spanning 300+ cities worldwide. Provides low-latency request routing, edge compute, and DDoS protection. Every LLM request enters through the nearest edge PoP." tabindex="0"/>
+            <text x="330" y="52" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" pointer-events="none">Infrastructure &mdash; Cloudflare Edge (300+ cities)</text>
+
+            <rect class="layer-rect" id="arch-orch" x="20" y="82" width="620" height="52" rx="6" fill="#8957e5"
+              data-title="Orchestration Layer"
+              data-body="Cloudflare Workers execute routing logic at the edge: request classification, provider selection, response transformation, and rate-limit enforcement. Serverless &mdash; no servers to manage." tabindex="0"/>
+            <text x="330" y="114" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" pointer-events="none">Orchestration &mdash; Cloudflare Workers</text>
+
+            <rect class="layer-rect" id="arch-data" x="20" y="144" width="620" height="52" rx="6" fill="#238636"
+              data-title="Data / Runtime Layer"
+              data-body="Cloudflare KV stores cached responses with configurable TTL. LLM provider APIs (OpenAI GPT-4, Anthropic Claude, Google Gemini, Hugging Face) serve the actual model calls. Fallback routing switches providers on failure." tabindex="0"/>
+            <text x="330" y="176" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" pointer-events="none">Data/Runtime &mdash; KV + OpenAI + Anthropic + Gemini</text>
+
+            <rect class="layer-rect" id="arch-obs" x="20" y="206" width="620" height="52" rx="6" fill="#d29922"
+              data-title="Observability Layer"
+              data-body="Cloudflare Analytics provides per-request logging, token usage tracking, cost attribution, and latency monitoring. Teams can trace every routed request to its provider, cost, and outcome." tabindex="0"/>
+            <text x="330" y="238" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" pointer-events="none">Observability &mdash; Analytics + Token Tracking</text>
+
+            <rect class="layer-rect" id="arch-sec" x="20" y="268" width="620" height="52" rx="6" fill="#f85149"
+              data-title="Security / Governance Layer"
+              data-body="Cloudflare Access controls API key management and authentication. Rate limiting prevents abuse. Request filtering blocks prompt injection. Audit logging tracks every access decision." tabindex="0"/>
+            <text x="330" y="300" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" pointer-events="none">Security &mdash; Access + Rate Limiting + Audit</text>
+          </svg>
+        </div>
+        <!-- Detail panel that shows on click -->
+        <div class="detail-panel" id="archDetail" aria-live="polite"></div>
+      </section>
+
+      <!-- ═══════════════════════════════════════ -->
+      <!-- Candidates — FIXED: click + detail panel -->
+      <!-- ═══════════════════════════════════════ -->
+      <section class="chapter" id="s-candidates">
+        <h2>Candidates</h2>
+        <p>Three validated tools for the routing layer &mdash; <strong>click any card</strong> for details.</p>
+        <div class="svg-container" id="candSvg">
+          <svg viewBox="0 0 660 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Candidate comparison chart">
+            <text x="330" y="20" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">Feature Comparison</text>
+
+            <!-- RouteOpt -->
+            <rect class="layer-rect" id="cand-routeopt" x="20" y="40" width="200" height="55" rx="6" fill="#1f6feb"
+              data-title="RouteOpt &mdash; LLM Cost Router"
+              data-body="Automatically routes every LLM request to the cheapest model that can handle it. Free up to 10K requests/mo. Drop-in proxy (swap your OpenAI base URL). Stack: Cloudflare Workers + KV + Gemini API + Stripe." tabindex="0"/>
+            <text x="120" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" pointer-events="none">RouteOpt</text>
+            <text x="120" y="82" text-anchor="middle" fill="#c9d1d9" font-size="10" pointer-events="none">Cost Router</text>
+
+            <!-- LLM Spend Lens -->
+            <rect class="layer-rect" id="cand-spendlens" x="230" y="40" width="200" height="55" rx="6" fill="#238636"
+              data-title="LLM Spend Lens &mdash; Cost Analytics"
+              data-body="Dashboard that visualizes your LLM spending across providers and identifies optimization opportunities. Free for 1 provider. Shareable reports. Stack: Cloudflare Pages + D1 + Workers + Gemini API + Stripe." tabindex="0"/>
+            <text x="330" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" pointer-events="none">LLM Spend Lens</text>
+            <text x="330" y="82" text-anchor="middle" fill="#c9d1d9" font-size="10" pointer-events="none">Cost Analytics</text>
+
+            <!-- PromptGate -->
+            <rect class="layer-rect" id="cand-promptgate" x="440" y="40" width="200" height="55" rx="6" fill="#8957e5"
+              data-title="PromptGate &mdash; Guardrail Gateway"
+              data-body="Adds caching, guardrails, and smart routing to every LLM call in 5 minutes. Free for basic caching + 3 guardrail rules. Drop-in proxy. Stack: Cloudflare Workers + KV + Gemini API + Stripe." tabindex="0"/>
+            <text x="540" y="64" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" pointer-events="none">PromptGate</text>
+            <text x="540" y="82" text-anchor="middle" fill="#c9d1d9" font-size="10" pointer-events="none">Guardrail Gateway</text>
+
+            <!-- Comparison bars -->
+            <text x="20" y="130" fill="#8b949e" font-size="11">Ease of Setup</text>
+            <rect x="140" y="118" width="180" height="14" rx="3" fill="#1f6feb" opacity=".7"/>
+            <text x="325" y="130" fill="#8b949e" font-size="10">High</text>
+            <rect x="140" y="136" width="140" height="14" rx="3" fill="#238636" opacity=".7"/>
+            <text x="285" y="148" fill="#8b949e" font-size="10">Med</text>
+            <rect x="140" y="154" width="180" height="14" rx="3" fill="#8957e5" opacity=".7"/>
+            <text x="325" y="166" fill="#8b949e" font-size="10">High</text>
+
+            <text x="20" y="195" fill="#8b949e" font-size="11">Cost Savings</text>
+            <rect x="140" y="183" width="200" height="14" rx="3" fill="#1f6feb" opacity=".7"/>
+            <text x="345" y="195" fill="#8b949e" font-size="10">High</text>
+            <rect x="140" y="201" width="160" height="14" rx="3" fill="#238636" opacity=".7"/>
+            <text x="305" y="213" fill="#8b949e" font-size="10">Med</text>
+            <rect x="140" y="219" width="120" height="14" rx="3" fill="#8957e5" opacity=".7"/>
+            <text x="265" y="231" fill="#8b949e" font-size="10">Low</text>
+
+            <text x="380" y="130" fill="#8b949e" font-size="11">Resilience</text>
+            <rect x="460" y="118" width="120" height="14" rx="3" fill="#1f6feb" opacity=".7"/>
+            <text x="585" y="130" fill="#8b949e" font-size="10">Med</text>
+            <rect x="460" y="136" width="100" height="14" rx="3" fill="#238636" opacity=".7"/>
+            <text x="565" y="148" fill="#8b949e" font-size="10">Low</text>
+            <rect x="460" y="154" width="180" height="14" rx="3" fill="#8957e5" opacity=".7"/>
+            <text x="645" y="166" fill="#8b949e" font-size="10">High</text>
+          </svg>
+        </div>
+        <!-- Detail panel for candidates -->
+        <div class="detail-panel" id="candDetail" aria-live="polite"></div>
+      </section>
+
+      <!-- Recall Cards -->
+      <section class="chapter" id="s-recall">
+        <h2>Recall Cards</h2>
+        <p>Test your retention. Tap a card to reveal the answer.</p>
+        <div class="recall-cards">
+          <div class="recall-card" data-id="rc1">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What determines AI feature profitability more than model quality?</div>
+              <div class="recall-card-back">The routing layer &mdash; the infrastructure that decides which model handles which request, when to cache, and when to fall back.<div class="correct">Got it</div></div>
+            </div>
+          </div>
+          <div class="recall-card" data-id="rc2">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What was the real bottleneck in LLM inference, according to vLLM?</div>
+              <div class="recall-card-back">GPU memory management &mdash; not compute power. PagedAttention treated GPU memory like virtual memory, achieving 2&ndash;4x throughput gains.<div class="correct">Got it</div></div>
+            </div>
+          </div>
+          <div class="recall-card" data-id="rc3">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What makes the routing layer the real API contract?</div>
+              <div class="recall-card-back">It guarantees latency, cost, and availability. When you depend on the routing layer instead of the model, the model becomes swappable.<div class="correct">Got it</div></div>
+            </div>
+          </div>
+          <div class="recall-card" data-id="rc4">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What did the November 2023 OpenAI outage prove about routing?</div>
+              <div class="recall-card-back">Companies with circuit breakers and fallback routing maintained service; those without went dark. The routing layer is resilience infrastructure.<div class="correct">Got it</div></div>
+            </div>
+          </div>
+          <div class="recall-card" data-id="rc5">
+            <div class="recall-card-inner">
+              <div class="recall-card-front">What percentage of LLM requests typically need the most expensive model?</div>
+              <div class="recall-card-back">About 15%. The other 85% can often be handled by cheaper models with negligible quality loss &mdash; if you have a routing layer.<div class="correct">Got it</div></div>
+            </div>
+          </div>
+        </div>
+        <p id="recallProgress" style="font-size:.85rem;color:var(--text2)"></p>
+      </section>
+
+      <!-- Concept Map SVG -->
+      <section class="chapter" id="s-concept">
+        <h2>Concept Map</h2>
+        <p>Interactive node graph &mdash; hover or tap any node to highlight connections.</p>
+        <div class="concept-map" id="conceptMap">
+          <svg viewBox="0 0 660 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Concept map of routing layer architecture">
+            <line class="edge" x1="330" y1="60" x2="150" y2="160"/>
+            <line class="edge" x1="330" y1="60" x2="510" y2="160"/>
+            <line class="edge" x1="330" y1="60" x2="330" y2="190"/>
+            <line class="edge" x1="150" y1="160" x2="80" y2="290"/>
+            <line class="edge" x1="150" y1="160" x2="220" y2="290"/>
+            <line class="edge" x1="510" y1="160" x2="440" y2="290"/>
+            <line class="edge" x1="510" y1="160" x2="580" y2="290"/>
+            <line class="edge" x1="330" y1="190" x2="330" y2="310"/>
+            <line class="edge" x1="330" y1="190" x2="220" y2="290"/>
+            <line class="edge" x1="330" y1="190" x2="440" y2="290"/>
+
+            <g class="node" data-id="routing" tabindex="0">
+              <circle cx="330" cy="60" r="38" fill="#1f6feb"/>
+              <text class="node-label" x="330" y="64" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Routing Layer</text>
+            </g>
+            <g class="node" data-id="caching" tabindex="0">
+              <circle cx="150" cy="160" r="32" fill="#238636"/>
+              <text class="node-label" x="150" y="164" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Caching</text>
+            </g>
+            <g class="node" data-id="fallback" tabindex="0">
+              <circle cx="510" cy="160" r="32" fill="#8957e5"/>
+              <text class="node-label" x="510" y="164" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Fallback</text>
+            </g>
+            <g class="node" data-id="cost" tabindex="0">
+              <circle cx="330" cy="190" r="32" fill="#d29922"/>
+              <text class="node-label" x="330" y="194" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Cost Control</text>
+            </g>
+            <g class="node" data-id="latency" tabindex="0">
+              <circle cx="80" cy="290" r="28" fill="#1f6feb" opacity=".7"/>
+              <text class="node-label" x="80" y="294" text-anchor="middle" fill="#fff" font-size="10">Latency</text>
+            </g>
+            <g class="node" data-id="resilience" tabindex="0">
+              <circle cx="220" cy="290" r="28" fill="#8957e5" opacity=".7"/>
+              <text class="node-label" x="220" y="294" text-anchor="middle" fill="#fff" font-size="10">Resilience</text>
+            </g>
+            <g class="node" data-id="circuit" tabindex="0">
+              <circle cx="440" cy="290" r="28" fill="#f85149" opacity=".7"/>
+              <text class="node-label" x="440" y="294" text-anchor="middle" fill="#fff" font-size="10">Circuit Breaker</text>
+            </g>
+            <g class="node" data-id="provider" tabindex="0">
+              <circle cx="580" cy="290" r="28" fill="#238636" opacity=".7"/>
+              <text class="node-label" x="580" y="294" text-anchor="middle" fill="#fff" font-size="10">Multi-Provider</text>
+            </g>
+            <g class="node" data-id="tiering" tabindex="0">
+              <circle cx="330" cy="310" r="28" fill="#d29922" opacity=".7"/>
+              <text class="node-label" x="330" y="314" text-anchor="middle" fill="#fff" font-size="10">Model Tiering</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Social Share -->
+      <div class="share-block">
+        <button class="share-btn" id="shareX" aria-label="Share on X/Twitter">&#120143; Share on X</button>
+        <button class="share-btn" id="shareLinkedIn" aria-label="Share on LinkedIn">in Share on LinkedIn</button>
+      </div>
+
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="citations">
+    <strong>Sources:</strong> Cloudflare AI Gateway blog and developer documentation (2023&ndash;2024); Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention," 2023; OpenAI status incident report, November 8, 2023; LiteLLM GitHub repository and community metrics; Roblox and Anyscale vLLM production adoption announcements.
+  </div>
+  <a href="https://iggym.github.io/agentic-infra-weekly/">Home</a>
+  <button onclick="window.scrollTo({top:0,behavior:'smooth'})" style="background:none;border:1px solid var(--border);color:var(--text2);padding:.3rem .8rem;border-radius:4px;cursor:pointer;font-size:.8rem" aria-label="Scroll to top">&uarr; Top</button>
+</footer>
+
+<script>
+(function(){
+  /* ── Reduced motion ── */
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Progress bar ── */
+  const progress = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  /* ── Reading time ── */
+  const articleText = document.querySelector('article')?.textContent || '';
+  const wordCount = articleText.split(/\s+/).filter(w => w.length > 0).length;
+  document.getElementById('readingTime').textContent = Math.max(1, Math.round(wordCount / 230)) + ' min read';
+
+  /* ── Hamburger toggle ── */
+  const hamburger = document.getElementById('hamburger');
+  const rail = document.getElementById('rail');
+  const scrim = document.getElementById('scrim');
+  hamburger.addEventListener('click', () => {
+    rail.classList.toggle('open');
+    scrim.classList.toggle('active');
+  });
+  scrim.addEventListener('click', () => {
+    rail.classList.remove('open');
+    scrim.classList.remove('active');
+  });
+
+  /* ── Sidebar active link ── */
+  const chapters = document.querySelectorAll('.chapter');
+  const railLinks = document.querySelectorAll('#rail a');
+  function updateActiveLink(){
+    let current = '';
+    chapters.forEach(ch => {
+      if(window.scrollY >= ch.offsetTop - 120) current = ch.id;
+    });
+    railLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', updateActiveLink, { passive: true });
+  railLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if(window.innerWidth <= 880){
+        rail.classList.remove('open');
+        scrim.classList.remove('active');
+      }
+    });
+  });
+
+  /* ── Spectrum marker drag ── */
+  const marker = document.getElementById('spectrumMarker');
+  const spectrumBar = marker?.parentElement;
+  if(marker && spectrumBar){
+    let dragging = false;
+    function moveMarker(clientX){
+      const rect = spectrumBar.getBoundingClientRect();
+      marker.style.left = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)) + '%';
+    }
+    marker.addEventListener('mousedown', () => dragging = true);
+    marker.addEventListener('touchstart', () => dragging = true, { passive: true });
+    window.addEventListener('mousemove', e => { if(dragging) moveMarker(e.clientX); });
+    window.addEventListener('touchmove', e => { if(dragging) moveMarker(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('mouseup', () => dragging = false);
+    window.addEventListener('touchend', () => dragging = false);
+    spectrumBar.addEventListener('click', e => moveMarker(e.clientX));
+  }
+
+  /* ═══════════════════════════════════════════════
+     FIX: Click-to-reveal detail panels for SVGs
+     ═══════════════════════════════════════════════ */
+  function setupClickableLayers(containerId, panelId){
+    const container = document.getElementById(containerId);
+    const panel = document.getElementById(panelId);
+    if(!container || !panel) return;
+
+    const rects = container.querySelectorAll('.layer-rect');
+    let selectedRect = null;
+
+    rects.forEach(rect => {
+      function activate(){
+        /* If clicking the same rect, deselect */
+        if(selectedRect === rect){
+          rect.classList.remove('selected');
+          selectedRect = null;
+          panel.innerHTML = '';
+          return;
+        }
+        /* Deselect previous */
+        if(selectedRect) selectedRect.classList.remove('selected');
+
+        /* Select this one */
+        rect.classList.add('selected');
+        selectedRect = rect;
+
+        /* Populate detail panel */
+        const title = rect.getAttribute('data-title') || '';
+        const body  = rect.getAttribute('data-body')  || '';
+        panel.innerHTML =
+          '<div class="dp-title">' + title + '</div>' +
+          '<div class="dp-body">'  + body  + '</div>';
+      }
+
+      /* Click (desktop + mobile) */
+      rect.addEventListener('click', activate);
+
+      /* Keyboard: Enter / Space */
+      rect.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); activate(); }
+      });
+    });
+
+    /* Click on empty SVG area deselects */
+    container.querySelector('svg')?.addEventListener('click', e => {
+      if(e.target.tagName === 'svg' || e.target.tagName === 'text'){
+        if(selectedRect){ selectedRect.classList.remove('selected'); selectedRect = null; }
+        panel.innerHTML = '';
+      }
+    });
+  }
+
+  setupClickableLayers('archSvg',  'archDetail');
+  setupClickableLayers('candSvg',  'candDetail');
+
+  /* ── Recall cards ── */
+  const cards = document.querySelectorAll('.recall-card');
+  const progressEl = document.getElementById('recallProgress');
+  function updateRecallProgress(){
+    const seen = [];
+    cards.forEach(c => { if(c.classList.contains('flipped')) seen.push(c.dataset.id); });
+    try{ sessionStorage.setItem('routeopt_recall_seen', JSON.stringify(seen)); } catch{}
+    if(progressEl) progressEl.textContent = seen.length + ' / ' + cards.length + ' cards revealed this session';
+  }
+  try{
+    const seen = JSON.parse(sessionStorage.getItem('routeopt_recall_seen') || '[]');
+    seen.forEach(id => {
+      const c = document.querySelector('.recall-card[data-id="' + id + '"]');
+      if(c) c.classList.add('flipped');
+    });
+  } catch{}
+  updateRecallProgress();
+  cards.forEach(card => {
+    card.addEventListener('click', () => { card.classList.toggle('flipped'); updateRecallProgress(); });
+  });
+
+  /* ── Concept map node hover ── */
+  const conceptMap = document.getElementById('conceptMap');
+  if(conceptMap){
+    const nodes = conceptMap.querySelectorAll('.node');
+    const edges = conceptMap.querySelectorAll('.edge');
+    const edgeMap = [
+      {from:'routing',to:'caching'}, {from:'routing',to:'fallback'}, {from:'routing',to:'cost'},
+      {from:'caching',to:'latency'}, {from:'caching',to:'resilience'},
+      {from:'fallback',to:'circuit'}, {from:'fallback',to:'provider'},
+      {from:'cost',to:'tiering'}, {from:'cost',to:'resilience'}, {from:'cost',to:'circuit'}
+    ];
+    function highlight(nid){
+      edges.forEach((edge, i) => {
+        const active = edgeMap[i].from === nid || edgeMap[i].to === nid;
+        edge.setAttribute('stroke', active ? '#58a6ff' : '#30363d');
+        edge.setAttribute('stroke-width', active ? '3' : '1.5');
+      });
+      nodes.forEach(n => {
+        const c = n.querySelector('circle');
+        if(n.dataset.id === nid){ c.setAttribute('stroke','#58a6ff'); c.setAttribute('stroke-width','3'); }
+        else { c.removeAttribute('stroke'); c.removeAttribute('stroke-width'); }
+      });
+    }
+    function reset(){
+      edges.forEach(e => { e.setAttribute('stroke','#30363d'); e.setAttribute('stroke-width','1.5'); });
+      nodes.forEach(n => { const c = n.querySelector('circle'); c.removeAttribute('stroke'); c.removeAttribute('stroke-width'); });
+    }
+    nodes.forEach(node => {
+      node.addEventListener('mouseenter', () => highlight(node.dataset.id));
+      node.addEventListener('focus',     () => highlight(node.dataset.id));
+      node.addEventListener('mouseleave', reset);
+      node.addEventListener('blur',       reset);
+      node.addEventListener('click',      () => highlight(node.dataset.id));
+    });
+  }
+
+  /* ── Social share ── */
+  const shareText = 'Your model isn\u2019t your moat \u2014 your routing layer is. The infrastructure between request and response determines cost, latency, and reliability.';
+  const shareUrl = window.location.href;
+  document.getElementById('shareX')?.addEventListener('click', () => {
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(shareUrl), '_blank');
+  });
+  document.getElementById('shareLinkedIn')?.addEventListener('click', () => {
+    window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(shareUrl), '_blank');
+  });
+
+  /* ── Init ── */
+  updateProgress();
+  updateActiveLink();
+})();
+</script>
+</body>
+</html>
