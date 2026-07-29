@@ -7,14 +7,23 @@
     "topic": "Observability",
     "bold_reframe": "Tracing latency on LLM calls is a distraction — what actually breaks autonomous agents is cumulative context drift.",
     "research_window": "2026-01-26 to 2026-07-26"
-  },[
+  },
   {
     "week": 31,
     "date": "2026-07-29",
     "filename": "mind-the-gap.html",
     "title": "Mind the Gap",
     "topic": "Observability",
-    "bold_reframe": " Direct — the gateway product exists because the routing layer is the real production bottleneck.",
+    "bold_reframe": "Direct — the gateway product exists because the routing layer is the real production bottleneck.",
     "research_window": "2026-01-26 to 2026-07-26"
+  },
+  {
+    "week": 31,
+    "date": "2026-07-29",
+    "filename": "harness-over-horsepower.html",
+    "title": "Harness Over Horsepower",
+    "topic": "Observability",
+    "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
+    "research_window": "2025-03-10 to 2025-03-16"
   }
 ]
