@@ -9,6 +9,24 @@
     "research_window": "2025-03-10 to 2025-03-16"
   },
   {
+  "week": 30,
+  "date": "2026-07-20",
+  "filename": "articles/the-paved-path-paradox.html",
+  "title": "The Paved Path Paradox",
+  "topic": "Platform Standardization",
+  "bold_reframe": "Standardization doesn't eliminate risk; it concentrates it into a single, catastrophic blast radius. True platform reliability comes from controlled flexibility, not rigid uniformity.",
+  "research_window": "2026-05-04 to 2026-07-26"
+},
+  {
+  "week": 27,
+  "date": "2026-07-03",
+  "filename": "articles/crying-wolf-in-code.html",
+  "title": "Crying Wolf in Code",
+  "topic": "Observability",
+  "bold_reframe": "AI observability alerts on the wrong signal because we measure plumbing instead of water quality.",
+  "research_window": "2026-03-23 to 2026-03-29"
+},
+  {
   "week": 27,
   "date": "2026-07-03",
   "filename": "articles/mind-the-gap.html",
