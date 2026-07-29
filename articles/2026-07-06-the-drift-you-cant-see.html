@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Drift You Can't See — AI Systems Engineering</title>
+<meta name="description" content="Real-world incident analysis: why AI observability catches what APM misses, and the architectural patterns that make systems trustworthy.">
+<style>
+:root {
+  --bg: #f6f8fb;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --text: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent: #0891b2;
+  --accent-light: #06b6d4;
+  --accent-dark: #0e7490;
+  --accent-soft: #ecfeff;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --success: #059669;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 30px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --radius: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+  --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elevated: #131313;
+  --surface: #18181b;
+  --surface-hover: #232327;
+  --text: #f4f4f5;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --accent: #22d3ee;
+  --accent-light: #06b6d4;
+  --accent-dark: #0891b2;
+  --accent-soft: #042f2e;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --success: #34d399;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-lg: 0 10px 30px -5px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  z-index: 100;
+  transition: width 100ms ease-out;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* Site header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.main-nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color var(--transition);
+  white-space: nowrap;
+}
+
+.nav-link:hover { color: var(--accent); }
+
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  transition: all var(--transition);
+  font-family: var(--font-sans);
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .sun-icon { display: none; }
+[data-theme="light"] .moon-icon,
+:root .moon-icon { display: none; }
+
+/* Main content */
+.main-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* Article */
+.article-content {
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.article-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 0;
+}
+
+.article-title {
+  font-size: clamp(1.85rem, 5vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.article-meta span:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.5rem;
+  color: var(--border-strong);
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+/* Layered architecture diagram */
+.layered-architecture {
+  margin: 2rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.layer {
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  transition: transform var(--transition);
+  border: 1px solid transparent;
+}
+
+.layer:hover { transform: translateX(3px); }
+
+.layer-tools { background: var(--accent-soft); color: var(--accent-dark); border-color: rgba(8,145,178,0.15); }
+.layer-orchestration { background: rgba(168,85,247,0.06); color: #9333ea; border-color: rgba(168,85,247,0.12); }
+[data-theme="dark"] .layer-orchestration { background: rgba(168,85,247,0.1); color: #c084fc; }
+.layer-data { background: rgba(34,197,94,0.06); color: #16a34a; border-color: rgba(34,197,94,0.12); }
+[data-theme="dark"] .layer-data { background: rgba(34,197,94,0.1); color: #4ade80; }
+.layer-observability { background: rgba(245,158,11,0.06); color: #d97706; border-color: rgba(245,158,11,0.12); }
+[data-theme="dark"] .layer-observability { background: rgba(245,158,11,0.1); color: #fbbf24; }
+.layer-security { background: rgba(239,68,68,0.06); color: #dc2626; border-color: rgba(239,68,68,0.12); }
+[data-theme="dark"] .layer-security { background: rgba(239,68,68,0.1); color: #f87171; }
+
+.layer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.layer-number {
+  opacity: 0.5;
+  font-size: 0.7rem;
+}
+
+.layer-items {
+  font-weight: 400;
+  font-size: 0.72rem;
+  opacity: 0.8;
+  text-align: right;
+}
+
+/* Headings */
+h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+p {
+  margin-bottom: 1.25rem;
+  color: var(--text-secondary);
+}
+
+strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+em { font-style: italic; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover { text-decoration: underline; color: var(--accent-dark); }
+
+/* Lists */
+ul, ol {
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+li strong { color: var(--text); }
+
+/* Code */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface-hover);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--accent-dark);
+  word-break: break-word;
+}
+
+[data-theme="dark"] code { color: var(--accent); }
+
+/* Blockquote */
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+blockquote p {
+  margin-bottom: 0;
+  color: var(--text);
+  font-style: italic;
+}
+
+blockquote strong { font-style: normal; }
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-hover);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.6rem 1rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td { border-bottom: none; }
+
+tr:hover td { background: var(--surface-hover); }
+
+td strong { color: var(--text); }
+
+/* Tool card */
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.tool-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+
+.tool-card h3 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool-card p:last-child { margin-bottom: 0; }
+
+/* Footer */
+.site-footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.footer-links a:hover { color: var(--accent); }
+
+/* Mobile */
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .main-content { padding: 2rem 1rem 3rem; }
+  .site-header-inner { padding: 0.75rem 1rem; gap: 0.5rem; }
+  .main-nav { gap: 0.75rem; }
+  .nav-link { font-size: 0.85rem; }
+  .layer-items { display: none; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="logo">infra<span style="color:var(--text-muted);font-weight:400;">·</span>weekly</a>
+    <nav class="main-nav">
+      <a href="#opening" class="nav-link">Opening</a>
+      <a href="#reframe" class="nav-link">Reframe</a>
+      <a href="#connections" class="nav-link">Connections</a>
+      <a href="#cta" class="nav-link">CTA</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="main-content">
+  <article class="article-content">
+    <header class="article-header">
+      <h1 class="article-title">The Drift You Can't See</h1>
+      <div class="article-meta">
+        <span class="tag">AI Systems Engineering</span>
+        <span>July 6, 2026</span>
+        <span>~9 min read</span>
+      </div>
+
+      <div class="layered-architecture" aria-label="AI platform architecture layers">
+        <div class="layer layer-tools">
+          <span class="layer-label"><span class="layer-number">L7</span> Tools & SDKs</span>
+          <span class="layer-items">LangChain · LlamaIndex · DSPy</span>
+        </div>
+        <div class="layer layer-orchestration">
+          <span class="layer-label"><span class="layer-number">L6</span> Orchestration</span>
+          <span class="layer-items">LangGraph · CrewAI · AutoGen</span>
+        </div>
+        <div class="layer layer-data">
+          <span class="layer-label"><span class="layer-number">L5</span> Data & Runtime</span>
+          <span class="layer-items">Kafka · Postgres · Redis · vLLM · Ray Serve</span>
+        </div>
+        <div class="layer layer-observability">
+          <span class="layer-label"><span class="layer-number">L4</span> Observability</span>
+          <span class="layer-items">Prometheus · Grafana · Datadog · OTel · Honeycomb</span>
+        </div>
+        <div class="layer layer-security">
+          <span class="layer-label"><span class="layer-number">L3</span> Security & Governance</span>
+          <span class="layer-items">Vault · OPA · IAM</span>
+        </div>
+      </div>
+    </header>
+
+    <p><strong>1 a.m.</strong> on a Tuesday. The checkout API is returning 200s — green across every dashboard. But conversions have dropped 40% in the last hour. The application logs show nothing. The synthetic transactions pass. The infrastructure metrics are pristine.</p>
+
+    <p>The LLM-powered product recommendation engine is the culprit. It's responding — <em>technically</em>. But the responses are <strong>wrong</strong>. The retrieval pipeline is pulling stale embeddings after a cache invalidation bug. The model is confidently recommending out-of-stock items. Users see the recommendations, add to cart, hit checkout, and abandon when the inventory check fails downstream.</p>
+
+    <p>The failure is invisible to the systems designed to catch failures. This is the observability gap in AI systems — and it's the reason "AI Observability" is not a feature, but a discipline.</p>
+
+    <h2 id="opening">The Opening Scene</h2>
+
+    <p>Traditional observability has three pillars: metrics, logs, and traces. These tools were built for deterministic systems where inputs map to outputs in predictable ways. An HTTP 500 is an HTTP 500 regardless of payload. A latency spike in a database query means the same thing whether you're serving cat photos or credit card approvals.</p>
+
+    <p>AI systems break this contract. The same input can produce different outputs. A 200 response can be a failure. A low-latency system can be producing garbage at speed. The failure modes are <strong>semantic</strong>, not <strong>syntactic</strong> — and your observability stack was designed for syntax.</p>
+
+    <blockquote>
+      <p><strong>The hard truth:</strong> If you're shipping AI to production, you need observability that understands the difference between "technically correct" and "actually useful."</p>
+    </blockquote>
+
+    <h2 id="reframe">The Bold Reframe</h2>
+
+    <p>Most teams approach AI observability as a monitoring problem — something you <em>add</em> to existing systems. This is wrong. AI observability is an <strong>architecture problem</strong> — something you <em>design for</em>.</p>
+
+    <p>The distinction matters because bolting on monitoring after deployment guarantees you'll miss the failure modes unique to AI. You need to instrument for drift, hallucination, and degradation <em>before</em> they reach production, not after.</p>
+
+    <p>Consider the layered architecture above. Each layer has different failure characteristics:</p>
+
+    <h3>Layer 7 — Tools &amp; SDKs</h3>
+    <p>LangChain, LlamaIndex, DSPy. The SDK layer is where prompt templates live. Failures here include prompt injection, template versioning issues, and silent prompt regressions when dependencies update. You need prompt diffs in version control — not just code diffs.</p>
+
+    <h3>Layer 6 — Orchestration</h3>
+    <p>LangGraph, CrewAI, AutoGen. Agent orchestration introduces multi-step reasoning failures. A single bad tool call cascades through the agent's reasoning chain. You need <strong>execution graphs</strong>, not just logs — the ability to replay a decision path step by step.</p>
+
+    <h3>Layer 5 — Data &amp; Runtime</h3>
+    <p>Kafka, Postgres, Redis, vLLM, Ray Serve. This is where traditional infra meets AI workload. The new failure: vector database drift. Your embeddings were generated with <code>text-embedding-3-large</code> in batch, but the runtime query uses <code>text-embedding-3-small</code>. The dimensions match. The semantics don't. Retrieval quality silently degrades.</p>
+
+    <h3>Layer 4 — Observability (The Meta-Layer)</h3>
+    <p>Prometheus, Grafana, Datadog, OpenTelemetry, Honeycomb. This layer must evolve. Traditional RED metrics (Rate, Errors, Duration) need AI extensions: <strong>RRD</strong> — <strong>Relevance, Refusal, Drift</strong>. Are the responses relevant to the query? Is the model refusing valid requests? Has the input distribution shifted from the training baseline?</p>
+
+    <h3>Layer 3 — Security &amp; Governance</h3>
+    <p>Vault, OPA, IAM. AI security is not just access control — it's <strong>output governance</strong>. PII leakage in responses. Copyright violations from training data. Regulatory compliance for automated decisions. You need policy enforcement on outputs, not just inputs.</p>
+
+    <h2 id="connections">The Hidden Connections</h2>
+
+    <p>Here's what ties this together: the SRE practices that built reliable infrastructure — SLOs, error budgets, blameless postmortems — are the <em>same practices</em> that make AI systems trustworthy. The tools are different. The discipline is the same.</p>
+
+    <h3>From Error Budgets to Confidence Budgets</h3>
+    <p>SRE gives us error budgets: a 99.9% SLO means you can fail 0.1% of the time before action is required. AI systems need <strong>confidence budgets</strong>: what's the acceptable rate of low-relevance responses before you trigger human review? The mechanism is identical — a threshold that triggers action — but the metric is AI-specific.</p>
+
+    <h3>From Circuit Breakers to Semantic Circuit Breakers</h3>
+    <p>A traditional circuit breaker trips on latency or error rate. A semantic circuit breaker trips on <strong>output quality degradation</strong>. If the average response relevance score drops below 0.7 for 5 consecutive minutes, stop serving AI responses and fall back to the deterministic path. This is chaos engineering applied to semantic quality, not just infrastructure resilience.</p>
+
+    <h3>From blameless to senseless postmortems</h3>
+    <p>SRE postmortems ask "what failed?" AI postmortems must also ask "what <em>should</em> have happened?" — the counterfactual. The model produced output X, but the <em>correct</em> output was Y. Why? This requires trace replay with semantic evaluation, not just log inspection.</p>
+
+    <h2>The Evidence</h2>
+
+    <p>I spent the last two weeks deep-diving into this. Here's what I found:</p>
+
+    <h3>The Problem is Real</h3>
+    <p>Every company shipping AI at scale has hit this. The examples in the opening aren't hypothetical — they're pattern-matched from real incident writeups. The <em>specifics</em> vary, but the <em>category</em> is universal: <strong>semantic failures invisible to syntactic monitoring.</strong></p>
+
+    <h3>The Market is Responding</h3>
+
+    <div class="tool-card">
+      <h3>Honeycomb — Query-Based AI Observability</h3>
+      <p>Best for: Teams already using Honeycomb for traditional observability who need AI-specific high-cardinality analysis. Strength: Wide-event analysis lets you slice by any dimension — prompt version, model, user cohort — in real-time. Weakness: Requires instrumenting AI-specific attributes manually via OpenTelemetry.</p>
+    </div>
+
+    <div class="tool-card">
+      <h3>Datadog — AI Monitoring via Integrations</h3>
+      <p>Best for: Organizations with existing Datadog investment. Strength: LLM observability features with model performance monitoring and quality metrics. Weakness: AI monitoring is a feature set, not a first-class citizen. The depth of AI-specific insight depends on integration quality.</p>
+    </div>
+
+    <div class="tool-card">
+      <h3>OpenTelemetry — Semantic Conventions for GenAI</h3>
+      <p>Best for: Teams building custom AI pipelines who want vendor-neutral instrumentation. Strength: Standardized GenAI semantic conventions (Spans for LLM calls, tool use, retrieval). Weakness: You're building the observability layer yourself — the conventions are still maturing.</p>
+    </div>
+
+    <p>The key takeaway: these tools are <strong>converging</strong> on the same capabilities. The differentiation is shifting from "does it have AI monitoring?" to "how deeply does it understand AI failure modes?"</p>
+
+    <h3>The Discipline Matters More Than the Tool</h3>
+    <p>Companies with strong SRE cultures adapt fastest. The teams that struggle are those treating AI as a black box to be monitored, not a system to be engineered. If you don't own your prompts, your retrieval pipeline, and your model selection criteria, no tool will save you.</p>
+
+    <h2>The Deeper Question: Why This Matters Now</h2>
+
+    <p>AI systems are becoming <strong>load-bearing</strong>. They're moving from "cool demo" to "critical path." When a recommendation engine drives 15% of revenue, its failure is a business-critical event. When a customer support agent handles 40% of tickets, its hallucination rate is an SLA.</p>
+
+    <p>The infrastructure engineering community has spent a decade building reliability into deterministic systems. The next decade is building reliability into <strong>probabilistic</strong> ones. The tools are different. The mindset — instrument everything, define failure objectively, automate response — is the same.</p>
+
+    <h3>Cost vs. Latency: The New Tradeoff Triangle</h3>
+    <p>Traditional infrastructure has a tradeoff triangle: cost, latency, reliability. AI adds a fourth dimension: <strong>quality</strong>. You can optimize for cost (small models, cached responses), latency (edge inference, model distillation), or quality (large models, fresh retrieval). But unlike traditional infra, the "reliability" axis now includes semantic correctness — a dimension that traditional tools don't measure.</p>
+
+    <p>This is why AI observability is not a feature. It's the <strong>measurement system</strong> for a new axis of system performance that your existing tools can't see.</p>
+
+    <h2 id="cta">Closing Call to Action</h2>
+
+    <p>Here's what to do this week:</p>
+    <ol>
+      <li><strong>Audit your AI telemetry:</strong> Pick one AI feature in production. What percentage of responses have a quality score? If the answer is zero, you're flying blind.</li>
+      <li><strong>Define one AI-specific SLO:</strong> Not "99.9% uptime" but "95% of responses have relevance score > 0.7." Measure it. Track it. Alert on it.</li>
+      <li><strong>Run a semantic chaos experiment:</strong> Deliberately degrade your retrieval pipeline in staging. What breaks first? How long does it take to detect? This is your AI resilience baseline.</li>
+    </ol>
+
+    <p>The drift you can't see is the drift that hurts you. Start measuring it.</p>
+
+    <p><em>Next week: We go deep on the model serving layer — vLLM vs. TGI vs. proprietary endpoints. The benchmark results will surprise you.</em></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <span>Published July 6, 2026 · infra.weekly</span>
+    <div class="footer-links">
+      <a href="#opening">Top</a>
+      <a href="/">Archive</a>
+      <a href="/feed.xml">RSS</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const themeToggle = document.getElementById('themeToggle');
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = stored || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+
+  themeToggle.addEventListener('click', function() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  const progressBar = document.getElementById('progressBar');
+  window.addEventListener('scroll', function() {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrolled = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+    progressBar.style.width = scrolled + '%';
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
