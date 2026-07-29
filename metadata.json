@@ -90,6 +90,24 @@
   "research_window": "2026-02-23 to 2026-05-17"
 },
   {
+  "week": 19,
+  "date": "2026-05-04",
+  "filename": "articles/blind-spots.html",
+  "title": "Blind Spots",
+  "topic": "Observability",
+  "bold_reframe": "Stop monitoring your LLMs like web servers. Agents don't crash; they hallucinate, loop, and confidently fail. A 200 OK is useless if the model is confidently lying. It's time for behavioral observability.",
+  "research_window": "2026-03-16 to 2026-05-03"
+},
+  {
+  "week": 18,
+  "date": "2026-04-27",
+  "filename": "articles/paved-with-good-intentions.html",
+  "title": "Paved With Good Intentions",
+  "topic": "Platform Standardization",
+  "bold_reframe": "A paved path is a toll road. If you don't enforce the toll, you're just paving a dirt road in a swamp.",
+  "research_window": "2026-01-19 to 2026-04-26"
+},
+  {
     "week": 14,
     "date": "2026-07-29",
     "filename": "articles/mind-the-gap.html",
