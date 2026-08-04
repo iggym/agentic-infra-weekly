@@ -9,6 +9,15 @@
     "research_window": "2025-03-10 to 2025-03-16"
   },
   {
+  "week": 30,
+  "date": "2026-07-20",
+  "filename": "articles/guarding-the-garden.html",
+  "title": "Guarding the Garden",
+  "topic": "Platform Standardization",
+  "bold_reframe": "Paved paths don't scale to autonomous agents; we need guard-railed gardens where the AI can explore dynamically but the infrastructure constrains the blast radius.",
+  "research_window": "2026-04-27 to 2026-07-26"
+},
+  {
     "week": 30,
     "date": "2026-07-20",
     "filename": "articles/the-paved-path-paradox.html",
