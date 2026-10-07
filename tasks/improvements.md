@@ -69,7 +69,9 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 - **Strategy:** Re-render all 23 older articles using `scripts/template.py`. This requires extracting article data from HTML and passing it to the template. Can be done as one batch commit.
 - **Done when:** every article shares the header/footer markup, home link, theme toggle (`aiw:theme`), and title format. All 29 articles validate with no CSS/JS mismatches.
 
-### T10. Add SEO and social metadata to every article
+### T10. Add SEO and social metadata to every article — ✅ DONE (2026-10-07)
+- **Resolution:** All 29 articles + index page now have complete metadata. Descriptions auto-extracted from bold_reframe (new articles) or first paragraph (older articles). All tags point to correct canonical URLs.
+
 - None of the 23 articles has OG tags or a canonical URL, and 22 of 23 have no `<meta name="description">`. The index page has no OG tags either.
 - **Done when:** every page has `description`, `canonical`, `og:title`, `og:description`, `og:url`, `og:type`, and `twitter:card`. Ideally it also has a default `og:image` (a 1200×630 site card).
 
