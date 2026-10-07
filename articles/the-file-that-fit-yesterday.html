@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The File That Fit Yesterday — Agentic Infra Weekly</title>
+<meta name="description" content="Generated config is a deploy that skips your deploy pipeline. If a file can take down production, it needs the same canary, validation and rollback as code.">
+<link rel="canonical" href="https://iggym.github.io/agentic-infra-weekly/articles/the-file-that-fit-yesterday.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Agentic Infra Weekly">
+<meta property="og:title" content="The File That Fit Yesterday">
+<meta property="og:description" content="Generated config is a deploy that skips your deploy pipeline. If a file can take down production, it needs the same canary, validation and rollback as code.">
+<meta property="og:url" content="https://iggym.github.io/agentic-infra-weekly/articles/the-file-that-fit-yesterday.html">
+<meta name="twitter:card" content="summary">
+<meta property="article:published_time" content="2026-10-07">
+<meta property="article:section" content="Kubernetes &amp; DevOps">
+<style>
+:root{color-scheme:dark;--bg:#090b10;--bg-raised:#0e1119;--surface:#12161f;--surface-hover:#171c28;--border:#232a38;--border-strong:#33405a;--text:#eef1f6;--text-muted:#9aa4b8;--text-faint:#62697a;--accent:#4f8cff;--accent-strong:#7cabff;--accent-glow:rgba(79,140,255,.14);--signal:#f5a623;--ok:#34d399;--danger:#f26d6d;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;--font-mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;--radius:10px}
+[data-theme="light"]{color-scheme:light;--bg:#f6f7fa;--bg-raised:#fff;--surface:#fff;--surface-hover:#f0f2f7;--border:#dde1ea;--border-strong:#c3cadb;--text:#10141d;--text-muted:#4b5468;--text-faint:#6b7489;--accent:#2f66d9;--accent-strong:#1e4fbf;--accent-glow:rgba(47,102,217,.09);--signal:#9a6008}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.65;font-size:1.05rem}
+a{color:var(--accent-strong)}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--accent);color:#06101f;font-weight:700;padding:.7rem 1.1rem;z-index:100;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.78rem;color:var(--text-muted)}
+.topbar a{color:var(--text);text-decoration:none;font-weight:700}
+.topbar .crumb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.topbar .spacer{flex:1}
+.theme-toggle{font:inherit;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:.35rem .6rem;cursor:pointer;min-height:32px}
+.theme-toggle:hover{color:var(--text)}
+.layout{max-width:1080px;margin:0 auto;padding:0 1rem 4rem;display:grid;grid-template-columns:minmax(0,1fr);gap:2rem}
+@media (min-width:980px){.layout{grid-template-columns:200px minmax(0,720px);justify-content:center}}
+nav.toc{display:none}
+@media (min-width:980px){nav.toc{display:block;position:sticky;top:4rem;align-self:start;margin-top:3.2rem;font-size:.85rem}}
+nav.toc ol{list-style:none;padding:0;margin:0;border-left:1px solid var(--border)}
+nav.toc a{display:block;padding:.3rem .8rem;color:var(--text-muted);text-decoration:none}
+nav.toc a:hover{color:var(--text);background:var(--surface-hover)}
+article{min-width:0}
+.kicker{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--signal);margin:3rem 0 .6rem}
+h1{font-size:clamp(2rem,6vw,2.9rem);line-height:1.1;letter-spacing:-.025em;margin:0}
+.byline{color:var(--text-muted);font-family:var(--font-mono);font-size:.8rem;margin:.9rem 0 2.2rem}
+h2{font-size:1.45rem;letter-spacing:-.01em;margin:2.8rem 0 .8rem;scroll-margin-top:4rem}
+section{scroll-margin-top:4rem}
+p{margin:0 0 1.05rem}
+blockquote.reframe{margin:1.5rem 0;padding:1.1rem 1.3rem;border-left:3px solid var(--accent);background:var(--accent-glow);border-radius:0 var(--radius) var(--radius) 0;font-size:1.2rem;font-weight:650;line-height:1.45}
+.oneliner{font-family:var(--font-mono);font-size:.95rem;color:var(--signal);border:1px dashed var(--border-strong);border-radius:var(--radius);padding:.8rem 1rem;margin:1.4rem 0}
+ol.steps{padding-left:1.3rem}
+ol.steps li{margin-bottom:.8rem}
+.challenge{border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--radius);padding:1.1rem 1.3rem}
+.challenge p:last-child{margin:0}
+code{font-family:var(--font-mono);font-size:.88em;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.05em .35em}
+sup a{text-decoration:none;font-size:.75em}
+.hint{color:var(--text-faint);font-size:.85rem;margin-top:-.4rem}
+.layers{display:flex;flex-direction:column;gap:.5rem}
+.layer{width:100%;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:8px;padding:.75rem 1rem;cursor:pointer}
+.layer:hover{background:var(--surface-hover)}
+.layer .lname{display:block;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.layer .ltech{font-weight:650}
+.layer .lrole{display:block;color:var(--text-muted);font-size:.92rem;margin-top:.35rem}
+.layer[aria-expanded="false"] .lrole{display:none}
+.layer:nth-child(2){border-left-color:var(--ok)}.layer:nth-child(3){border-left-color:var(--signal)}.layer:nth-child(4){border-left-color:#c084fc}.layer:nth-child(5){border-left-color:var(--danger)}.layer:nth-child(6){border-left-color:#22d3ee}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem}
+.card{font:inherit;text-align:left;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;min-height:130px}
+.card:hover{border-color:var(--border-strong)}
+.card .face{display:block;font-family:var(--font-mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:.4rem}
+.card .a{display:none;color:var(--text-muted)}
+.card[aria-expanded="true"]{border-color:var(--accent)}
+.card[aria-expanded="true"] .q{display:none}
+.card[aria-expanded="true"] .a{display:block}
+.recall-count{font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)}
+.map svg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.map .edge{stroke:var(--border-strong);stroke-width:1.5;transition:opacity .15s,stroke .15s}
+.map .node circle{fill:var(--bg-raised);stroke:var(--accent);stroke-width:1.5}
+.map .node.core circle{fill:var(--accent-glow);stroke-width:2.5}
+.map .node text{fill:var(--text);font-family:var(--font-sans);font-size:12px;text-anchor:middle;pointer-events:none}
+.map .node{cursor:pointer;outline:none}
+.map .node:focus-visible circle{stroke:var(--signal);stroke-width:3}
+.map.active .edge{opacity:.15}
+.map.active .edge.on{opacity:1;stroke:var(--accent)}
+.map.active .node{opacity:.4}
+.map.active .node.on{opacity:1}
+#citations ol{padding-left:1.3rem;font-size:.9rem;color:var(--text-muted);overflow-wrap:anywhere}
+#citations li{margin-bottom:.5rem;scroll-margin-top:4rem}
+#citations li:target{color:var(--text)}
+footer.site-footer{border-top:1px solid var(--border);margin-top:3rem;padding-top:1.2rem;display:flex;flex-wrap:wrap;gap:1rem;font-size:.9rem}
+footer.site-footer a{color:var(--text-muted)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar">
+  <a href="../index.html">Agentic Infra Weekly</a><span class="crumb">/ The File That Fit Yesterday</span>
+  <span class="spacer"></span><span>5 min read</span>
+  <button type="button" class="theme-toggle" id="theme-toggle">Light mode</button>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="Sections"><ol><li><a href="#s1">Sixty Features, Then Two Hundred</a></li><li><a href="#s2">Config Is a Deploy</a></li><li><a href="#s3">We&#x27;ve Seen This File Before</a></li><li><a href="#s4">The Fixes on the Record</a></li><li><a href="#s5">Grain of Salt</a></li><li><a href="#s6">Put It in the Pipeline</a></li><li><a href="#s7">First 24 Hours</a></li><li><a href="#architecture">Architecture</a></li><li><a href="#recall">Recall Cards</a></li><li><a href="#concept-map">Concept Map</a></li><li><a href="#citations">Citations</a></li></ol></nav>
+<main id="main">
+<article>
+<p class="kicker">Kubernetes &amp; DevOps · Week 41</p>
+<h1>The File That Fit Yesterday</h1>
+<p class="byline"><time datetime="2026-10-07">Oct 7, 2026</time> · 5 min read</p>
+<section id="s1" aria-labelledby="s1-h"><h2 id="s1-h">Sixty Features, Then Two Hundred</h2>
+<p>At 11:05 UTC on November 18, 2025, Cloudflare rolled out a routine permissions change to a ClickHouse database cluster<sup><a href="#c1">[1]</a></sup>. It was the kind of change that ships every week: tightening how users see the tables they can already access.</p>
+<p>Fifteen minutes later, Cloudflare's network started returning HTTP 5xx errors to a large share of the internet.</p>
+<p>The chain went like this. Every five minutes, a job queried that ClickHouse cluster to build a "feature file" for Cloudflare's Bot Management system: the list of signals its machine-learning model uses to score traffic. The file normally held about 60 features. After the permissions change, the query started returning rows from a second, underlying database as well, so the list had duplicates. The file more than doubled. The core proxy that loads it had a hard limit of 200 features, preallocated for performance. The new file blew past it, and the proxy code hit an unhandled error and panicked<sup><a href="#c1">[1]</a></sup>.</p>
+<p>Then it got strange. Because the database cluster was being updated gradually, each five-minute run had a chance of landing on an updated node or an old one. The network flapped between a good file and a bad one, failing and recovering, which looked a lot like an attack. Core traffic wasn't flowing normally again until 14:30, and everything was fully restored at 17:06<sup><a href="#c2">[2]</a></sup>.</p>
+</section><section id="s2" aria-labelledby="s2-h"><h2 id="s2-h">Config Is a Deploy</h2>
+<blockquote class="reframe">Generated config is a deploy that skips your deploy pipeline. If a file can take down production, it needs the same canary, validation and rollback as code.</blockquote>
+<p>Most organizations draw a hard line between code and configuration. Code goes through review, tests, staged rollout, and a rollback button. Configuration, especially configuration that a machine regenerates on a timer, is treated as data. It flows straight to production, often to the whole fleet at once, because it's "just a file."</p>
+<p>That line is a fiction. If a file changes what a running program does, it's part of the program. The only difference is that it skipped the gates you built for every other kind of change.</p>
+<p class="oneliner">Your deploy pipeline protects you from the changes that go through it.</p>
+</section><section id="s3" aria-labelledby="s3-h"><h2 id="s3-h">We&#x27;ve Seen This File Before</h2>
+<p>Cloudflare's incident has a famous older sibling. On July 19, 2024, CrowdStrike pushed a content update for its Falcon sensor: a configuration file called Channel File 291, not a code release<sup><a href="#c3">[3]</a></sup>. The sensor's content interpreter read past the end of an array while parsing it. The exception couldn't be handled in kernel mode, and about 8.5 million Windows machines crashed into boot loops. The sensor code had been tested. The content file was validated by a validator that had its own bug. Then it went out everywhere at once.</p>
+<p>Three years earlier, on October 4, 2021, Facebook disappeared from the internet for about six hours<sup><a href="#c4">[4]</a></sup>. A command meant to assess backbone capacity took down all the backbone connections, and an audit tool that should have blocked it had a bug. With the backbone gone, Facebook's DNS servers withdrew their own BGP routes, which made the outage harder to fix.</p>
+<p>Different companies, different files, the same shape:</p>
+<ul>
+<li>A change that <strong>wasn't classified as a deploy</strong>, so it skipped staged rollout.</li>
+<li>A consumer that <strong>trusted its input</strong> and turned bad data into a crash instead of a rejection.</li>
+<li>A <strong>global blast radius</strong>, because config propagates faster than code by design.</li>
+</ul>
+<p>Google's SRE workbook names the missing practice directly. Canarying, it argues, applies to any change that can affect production, explicitly including configuration changes<sup><a href="#c5">[5]</a></sup>.</p>
+</section><section id="s4" aria-labelledby="s4-h"><h2 id="s4-h">The Fixes on the Record</h2>
+<p>Cloudflare's own remediation list reads like a definition of "treat config like code"<sup><a href="#c1">[1]</a></sup>. It includes hardening ingestion of Cloudflare-generated configuration files the same way user-generated input would be, adding more global kill switches for features, and reviewing failure modes for error conditions across all core proxy modules. In plain terms: validate it, be able to turn it off quickly, and don't crash on it.</p>
+<p>The detail worth dwelling on is the limit. The proxy had a sensible guard: preallocate memory for at most 200 features. The guard wasn't the bug. The bug was what happened when the guard tripped. The process died instead of rejecting the new file and continuing with the last good one. A limit that crashes the program is just a tripwire.</p>
+<p>The systems-thinking methods here: <strong>staged rollout</strong> limits how far a bad change spreads before you notice. <strong>Last-known-good fallback</strong> turns bad input into a logged rejection instead of an outage. <strong>Schema and bounds validation at the producer</strong> catches the doubled file before it ever leaves the generator.</p>
+</section><section id="s5" aria-labelledby="s5-h"><h2 id="s5-h">Grain of Salt</h2>
+<p>The counterargument is speed. Bot-detection features and threat signatures have to change fast. Attackers adapt in minutes, and a canary that takes an hour defeats the purpose. That's exactly why these files were on a fast path.</p>
+<p>It's a real tension, but a canary doesn't have to be slow. Rolling a file to 1% of machines and watching crash rates and error rates for two minutes before going to 100% would have caught both the Cloudflare and CrowdStrike files. Neither bug was subtle once it reached a real host. The goal isn't to slow config down to code speed. It's to make sure no single change reaches every machine before any machine has survived it.</p>
+</section><section id="s6" aria-labelledby="s6-h"><h2 id="s6-h">Put It in the Pipeline</h2>
+<ol class="steps">
+<li><strong>Inventory machine-written config.</strong> List every file, flag, rule set, or model artifact that's generated by a job and consumed by a production service: feature lists, routing tables, allowlists, ML features, policy bundles. Note how often each one changes and how it reaches production.</li>
+<li><strong>Validate at the producer.</strong> Before publishing, check the schema, row counts, and size against the previous version. A file that's suddenly twice as big, or has duplicate keys, should fail to publish and page its owner.</li>
+<li><strong>Make consumers keep the last good file.</strong> On parse failure or limit breach, reject the new file, keep serving with the previous one, and emit a loud metric. Search your code for places where loading config can panic or exit, and fix them first.</li>
+<li><strong>Canary config like code.</strong> Push to a small slice of the fleet, watch crash and error rates, and promote automatically if they hold. In Kubernetes, tools like Argo Rollouts or Flagger can drive progressive delivery for config held in ConfigMaps when you version them with the workload<sup><a href="#c6">[6]</a></sup>.</li>
+<li><strong>Add a kill switch per feature.</strong> Every config-driven feature should be disable-able on its own, globally, in seconds, without a deploy.</li>
+</ol>
+</section><section id="s7" aria-labelledby="s7-h"><h2 id="s7-h">First 24 Hours</h2>
+<div class="challenge"><p>Find the single config file in your stack that's regenerated most often and loaded by the most machines. Copy it, double every entry in it, and load it into a staging instance of its consumer. Does the service reject it and carry on, or does it fall over? Either way, you now know which side of the Cloudflare postmortem you're on.</p></div>
+</section>
+<section id="architecture" aria-labelledby="architecture-h"><h2 id="architecture-h">Architecture</h2>
+<p class="hint">The November 18, 2025 Cloudflare outage, mapped onto the layer model. Select a layer to expand it.</p>
+<div class="layers"><button type="button" class="layer" aria-expanded="false"><span class="lname">Orchestration</span><span class="ltech">Feature-file generation job (every 5 min)</span><span class="lrole">Regenerated the Bot Management feature file and pushed it across the network with no staged rollout.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Data / Runtime</span><span class="ltech">ClickHouse cluster</span><span class="lrole">A permissions change made a metadata query return rows from an extra database, duplicating features.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Observability</span><span class="ltech">Global 5xx rate</span><span class="lrole">Saw the failure fast, but the good-file/bad-file flapping looked like an attack and slowed diagnosis.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Security / Governance</span><span class="ltech">Bot Management</span><span class="lrole">The product that consumed the file. Its feature limit was the right guard with the wrong failure mode.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Infrastructure</span><span class="ltech">Core proxy (FL / FL2)</span><span class="lrole">A hard limit of 200 features. Exceeding it caused an unhandled error and a panic instead of a fallback.</span></button></div></section>
+<section id="recall" aria-labelledby="recall-h"><h2 id="recall-h">Recall Cards</h2>
+<p class="recall-count" id="recall-count" aria-live="polite"></p>
+<div class="cards"><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What is the bold reframe?</span><span class="a">Generated config is a deploy that skips the deploy pipeline. It needs canaries, validation, and rollback just like code.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">Why did Cloudflare&#x27;s outage flap between failing and recovering?</span><span class="a">The feature file was rebuilt every five minutes, and the database cluster was being updated gradually, so each run could produce a good or bad file.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What did Cloudflare, CrowdStrike, and Facebook&#x27;s 2021 outages have in common?</span><span class="a">A change that wasn&#x27;t treated as a deploy, a consumer that crashed on bad input, and a global blast radius.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What should a consumer do when a new config file breaks a limit?</span><span class="a">Reject it, keep serving with the last known good version, and alert loudly. Never crash.</span></button></div></section>
+<section id="concept-map" aria-labelledby="concept-map-h"><h2 id="concept-map-h">Concept Map</h2>
+<p class="hint">Hover or focus a node (Tab, then Enter) to highlight its connections.</p>
+<div class="map"><svg viewBox="0 0 640 420" role="group" aria-label="Concept map: Config as Code"><line class="edge" data-a="core" data-b="canary" x1="320" y1="210" x2="320" y2="50"/><line class="edge" data-a="core" data-b="validate" x1="320" y1="210" x2="500" y2="130"/><line class="edge" data-a="core" data-b="lkg" x1="320" y1="210" x2="500" y2="290"/><line class="edge" data-a="core" data-b="kill" x1="320" y1="210" x2="320" y2="370"/><line class="edge" data-a="core" data-b="blast" x1="320" y1="210" x2="140" y2="290"/><line class="edge" data-a="core" data-b="limit" x1="320" y1="210" x2="140" y2="130"/><line class="edge" data-a="canary" data-b="blast" x1="320" y1="50" x2="140" y2="290"/><line class="edge" data-a="limit" data-b="lkg" x1="140" y1="130" x2="500" y2="290"/><line class="edge" data-a="validate" data-b="limit" x1="500" y1="130" x2="140" y2="130"/><line class="edge" data-a="kill" data-b="blast" x1="320" y1="370" x2="140" y2="290"/><g class="node core" data-id="core" tabindex="0" role="button" aria-label="Config as Code"><circle cx="320" cy="210" r="52"/><text><tspan x="320" y="207">Config as</tspan><tspan x="320" y="221">Code</tspan></text></g><g class="node" data-id="canary" tabindex="0" role="button" aria-label="Canary Rollout"><circle cx="320" cy="50" r="44"/><text><tspan x="320" y="47">Canary</tspan><tspan x="320" y="61">Rollout</tspan></text></g><g class="node" data-id="validate" tabindex="0" role="button" aria-label="Producer Validation"><circle cx="500" cy="130" r="44"/><text><tspan x="500" y="127">Producer</tspan><tspan x="500" y="141">Validation</tspan></text></g><g class="node" data-id="lkg" tabindex="0" role="button" aria-label="Last Known Good"><circle cx="500" cy="290" r="44"/><text><tspan x="500" y="287">Last Known</tspan><tspan x="500" y="301">Good</tspan></text></g><g class="node" data-id="kill" tabindex="0" role="button" aria-label="Kill Switch"><circle cx="320" cy="370" r="44"/><text><tspan x="320" y="374">Kill Switch</tspan></text></g><g class="node" data-id="blast" tabindex="0" role="button" aria-label="Blast Radius"><circle cx="140" cy="290" r="44"/><text><tspan x="140" y="294">Blast Radius</tspan></text></g><g class="node" data-id="limit" tabindex="0" role="button" aria-label="Hard Limits"><circle cx="140" cy="130" r="44"/><text><tspan x="140" y="134">Hard Limits</tspan></text></g></svg></div>
+<p class="hint" id="map-status" aria-live="polite"></p></section>
+<section id="citations" aria-labelledby="citations-h"><h2 id="citations-h">Citations</h2><ol><li id="c1">Cloudflare, “Cloudflare outage on November 18, 2025.” <a href="https://blog.cloudflare.com/18-november-2025-outage/" target="_blank" rel="noopener">https://blog.cloudflare.com/18-november-2025-outage/</a></li><li id="c2">ilert Postmortem Library, “Cloudflare global outage, November 2025.” <a href="https://www.ilert.com/postmortems/cloudflare-global-outage-nov-2025" target="_blank" rel="noopener">https://www.ilert.com/postmortems/cloudflare-global-outage-nov-2025</a></li><li id="c3">CrowdStrike, “Falcon Content Update Preliminary Post Incident Report,” July 24, 2024. <a href="https://www.crowdstrike.com/en-us/blog/falcon-content-update-preliminary-post-incident-report/" target="_blank" rel="noopener">https://www.crowdstrike.com/en-us/blog/falcon-content-update-preliminary-post-incident-report/</a></li><li id="c4">Meta Engineering, “More details about the October 4 outage,” Oct 5, 2021. <a href="https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/" target="_blank" rel="noopener">https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/</a></li><li id="c5">Google, The Site Reliability Workbook, ch. 16: “Canarying Releases.” <a href="https://sre.google/workbook/canarying-releases/" target="_blank" rel="noopener">https://sre.google/workbook/canarying-releases/</a></li><li id="c6">Argo Project, Argo Rollouts documentation. <a href="https://argoproj.github.io/argo-rollouts/" target="_blank" rel="noopener">https://argoproj.github.io/argo-rollouts/</a></li></ol></section>
+</article>
+<footer class="site-footer">
+  <a href="#main">Back to top</a><a href="../index.html">All issues</a>
+  <a href="https://twitter.com/intent/tweet?text=The%20File%20That%20Fit%20Yesterday%20%E2%80%94%20Agentic%20Infra%20Weekly&amp;url=https%3A%2F%2Figgym.github.io%2Fagentic-infra-weekly%2Farticles%2Fthe-file-that-fit-yesterday.html" target="_blank" rel="noopener">Share on X</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fagentic-infra-weekly%2Farticles%2Fthe-file-that-fit-yesterday.html" target="_blank" rel="noopener">Share on LinkedIn</a>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  'use strict';
+  var KEY='aiw:theme', root=document.documentElement, btn=document.getElementById('theme-toggle');
+  function sysLight(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;}
+  function apply(choice){
+    var t=choice==='system'?(sysLight()?'light':'dark'):(choice==='light'?'light':'dark');
+    root.setAttribute('data-theme',t);
+    btn.textContent=t==='light'?'Dark mode':'Light mode';
+    btn.setAttribute('aria-label','Switch to '+(t==='light'?'dark':'light')+' theme');
+  }
+  var saved='system';
+  try{saved=localStorage.getItem(KEY)||'system';}catch(e){}
+  apply(saved);
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='light'?'dark':'light';
+    try{localStorage.setItem(KEY,next);}catch(e){}
+    apply(next);
+  });
+
+  document.querySelectorAll('.layer').forEach(function(el){
+    el.addEventListener('click',function(){el.setAttribute('aria-expanded',String(el.getAttribute('aria-expanded')!=='true'));});
+  });
+
+  var cards=document.querySelectorAll('.card'), count=document.getElementById('recall-count');
+  function updateCount(){
+    var n=document.querySelectorAll('.card[aria-expanded="true"]').length;
+    count.textContent=n+' / '+cards.length+' revealed';
+  }
+  cards.forEach(function(el){
+    el.addEventListener('click',function(){el.setAttribute('aria-expanded',String(el.getAttribute('aria-expanded')!=='true'));updateCount();});
+  });
+  updateCount();
+
+  var map=document.querySelector('.map'), status=document.getElementById('map-status');
+  if(map){
+    var edges=map.querySelectorAll('.edge'), nodes=map.querySelectorAll('.node');
+    function on(id,label){
+      map.classList.add('active');
+      var linked=[];
+      edges.forEach(function(e){
+        var hit=e.getAttribute('data-a')===id||e.getAttribute('data-b')===id;
+        e.classList.toggle('on',hit);
+        if(hit)linked.push(e.getAttribute('data-a')===id?e.getAttribute('data-b'):e.getAttribute('data-a'));
+      });
+      var names=[];
+      nodes.forEach(function(n){
+        var hit=n.getAttribute('data-id')===id||linked.indexOf(n.getAttribute('data-id'))!==-1;
+        n.classList.toggle('on',hit);
+        if(hit&&n.getAttribute('data-id')!==id)names.push(n.getAttribute('aria-label'));
+      });
+      status.textContent=label+' connects to: '+names.join(', ')+'.';
+    }
+    function off(){map.classList.remove('active');status.textContent='';}
+    nodes.forEach(function(n){
+      var id=n.getAttribute('data-id'), label=n.getAttribute('aria-label');
+      n.addEventListener('mouseenter',function(){on(id,label);});
+      n.addEventListener('mouseleave',off);
+      n.addEventListener('focus',function(){on(id,label);});
+      n.addEventListener('blur',off);
+      n.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();on(id,label);}});
+    });
+  }
+})();
+</script>
+</body>
+</html>

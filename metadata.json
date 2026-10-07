@@ -1,31 +1,76 @@
 [
   {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/the-deputy-takes-dictation.html",
+    "title": "The Deputy Takes Dictation",
+    "topic": "Security & Governance",
+    "bold_reframe": "Prompt injection isn't an input-filtering bug; it's the confused deputy problem from 1988. The fix is the same: give the agent less authority, not better instructions.",
+    "research_window": "1988-10-01 to 2025-06-16"
+  },
+  {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/same-weights-worse-answers.html",
+    "title": "Same Weights, Worse Answers",
+    "topic": "AI Systems Engineering",
+    "bold_reframe": "Model quality is an infrastructure SLO. The weights didn't change; the serving stack did. If your evals only run before deploy, you can't see the failures that actually ship.",
+    "research_window": "2025-08-05 to 2025-09-18"
+  },
+  {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/the-file-that-fit-yesterday.html",
+    "title": "The File That Fit Yesterday",
+    "topic": "Kubernetes & DevOps",
+    "bold_reframe": "Generated config is a deploy that skips your deploy pipeline. If a file can take down production, it needs the same canary, validation and rollback as code.",
+    "research_window": "2021-10-04 to 2025-11-18"
+  },
+  {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/the-context-window-is-a-cache.html",
+    "title": "The Context Window Is a Cache",
+    "topic": "AI Platform Architecture",
+    "bold_reframe": "The context window isn't a prompt; it's the scarcest tier in your memory hierarchy. Loading every tool definition up front is like copying the whole disk into L1.",
+    "research_window": "2023-07-06 to 2025-11-04"
+  },
+  {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/the-speed-you-feel.html",
+    "title": "The Speed You Feel",
+    "topic": "Developer Enablement",
+    "bold_reframe": "AI coding tools are judged by how fast developers feel, not how fast work ships. Until you measure delivery outcomes, your AI rollout runs on vibes, not evidence.",
+    "research_window": "2021-03-06 to 2025-07-10"
+  },
+  {
+    "week": 41,
+    "date": "2026-10-07",
+    "filename": "articles/every-span-has-a-price.html",
+    "title": "Every Span Has a Price",
+    "topic": "Observability",
+    "bold_reframe": "Telemetry is a product with a unit cost, not a free byproduct. Agents multiply spans per request, so sampling by value is now an architecture decision, not a billing afterthought.",
+    "research_window": "2022-01-01 to 2025-11-04"
+  },
+  {
     "week": 31,
     "date": "2026-07-29",
     "filename": "articles/harness-over-horsepower.html",
     "title": "Harness Over Horsepower",
-    "topic": "Observability",
+    "topic": "AI Platform Architecture",
     "bold_reframe": "In AI systems, the model is a replaceable dependency. The harness — your routing logic, fallback patterns, cost controls, and reliability layer — is the actual product.",
-    "research_window": "2025-03-10 to 2025-03-16"
+    "research_window": "2026-07-27 to 2026-08-02"
   },
   {
-  "week": 30,
-  "date": "2026-07-20",
-  "filename": "articles/golden-paths-global-craters.html",
-  "title": "Golden Paths, Global Craters",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Paved paths don't prevent failure; they standardize the blast radius.",
-  "research_window": "2024-01-01 to 2026-07-20"
-},
-  {
-  "week": 30,
-  "date": "2026-07-20",
-  "filename": "articles/guarding-the-garden.html",
-  "title": "Guarding the Garden",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Paved paths don't scale to autonomous agents; we need guard-railed gardens where the AI can explore dynamically but the infrastructure constrains the blast radius.",
-  "research_window": "2026-04-27 to 2026-07-26"
-},
+    "week": 30,
+    "date": "2026-07-20",
+    "filename": "articles/guarding-the-garden.html",
+    "title": "Guarding the Garden",
+    "topic": "Platform Standardization",
+    "bold_reframe": "Paved paths don't scale to autonomous agents; we need guard-railed gardens where the AI can explore dynamically but the infrastructure constrains the blast radius.",
+    "research_window": "2026-04-27 to 2026-07-26"
+  },
   {
     "week": 30,
     "date": "2026-07-20",
@@ -45,7 +90,7 @@
     "research_window": "2026-07-06 to 2026-07-12"
   },
   {
-    "week": 27.1,
+    "week": 27,
     "date": "2026-07-03",
     "filename": "articles/crying-wolf-in-code.html",
     "title": "Crying Wolf in Code",
@@ -54,7 +99,7 @@
     "research_window": "2026-03-23 to 2026-03-29"
   },
   {
-    "week": 27.2,
+    "week": 27,
     "date": "2026-07-03",
     "filename": "articles/mind-the-gap.html",
     "title": "Mind the Gap",
@@ -81,31 +126,22 @@
     "research_window": "2026-02-23 to 2026-06-07"
   },
   {
-    "week": 21.1,
-    "date": "2024-05-22",
-    "filename": "articles/watching-the-wrong-dial.html",
-    "title": "Watching the Wrong Dial",
-    "topic": "Observability",
-    "bold_reframe": "A syntactically valid response containing a semantic failure is a 500-level error for your business logic; observability must shift from infrastructure uptime to semantic integrity.",
-    "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
+    "week": 21,
+    "date": "2026-05-21",
+    "filename": "articles/automating-the-outage.html",
+    "title": "Automating the Outage",
+    "topic": "Kubernetes & DevOps",
+    "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
+    "research_window": "2024-03-25 to 2024-03-31"
   },
   {
-    "week": 21.2,
+    "week": 21,
     "date": "2026-05-18",
     "filename": "articles/the-desired-state-delusion.html",
     "title": "The Desired State Delusion",
     "topic": "Kubernetes & DevOps",
     "bold_reframe": "GitOps isn't pulling your infrastructure closer to desired state; it's accelerating drift by treating infrastructure as version-controlled code rather than ephemeral state.",
     "research_window": "2026-02-09 to 2026-02-15"
-  },
-  {
-    "week": 21.3,
-    "date": "2024-05-21",
-    "filename": "articles/automating-the-outage.html",
-    "title": "Automating the Outage",
-    "topic": "Kubernetes & DevOps",
-    "bold_reframe": "GitOps doesn't prevent outages; it automates them.",
-    "research_window": "2024-03-25 to 2024-03-31"
   },
   {
     "week": 20,
@@ -126,7 +162,7 @@
     "research_window": "2026-03-16 to 2026-05-03"
   },
   {
-    "week": 18.1,
+    "week": 18,
     "date": "2026-05-04",
     "filename": "articles/the-paved-path-illusion.html",
     "title": "The Paved Path Illusion",
@@ -135,7 +171,7 @@
     "research_window": "2026-02-09 to 2026-05-03"
   },
   {
-    "week": 18.2,
+    "week": 18,
     "date": "2026-04-27",
     "filename": "articles/paved-with-good-intentions.html",
     "title": "Paved With Good Intentions",
@@ -187,15 +223,6 @@
     "topic": "Observability",
     "bold_reframe": "AI observability isn't about tracing what the model did; it's about observing what the harness allowed it to do.",
     "research_window": "2025-12-15 to 2026-03-29"
-  },
-  {
-    "week": 12,
-    "date": "2026-03-16",
-    "filename": "articles/paved-with-good-intentions.html",
-    "title": "Paved With Good Intentions",
-    "topic": "Platform Standardization",
-    "bold_reframe": "Paved paths don't eliminate complexity—they concentrate it at the boundary. The most dangerous moment isn't when someone follows the path, it's when they step off it.",
-    "research_window": "2025-12-08 to 2026-03-22"
   },
   {
     "week": 11,
