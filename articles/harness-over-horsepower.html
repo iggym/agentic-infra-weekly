@@ -245,10 +245,10 @@
 
       <section class="chapter" id="s5">
         <h2>Take the Wheel</h2>
-        <p><strong>1. Audit your routing distribution.</strong> Pull last month's API logs and calculate what percentage of your spend went to your most expensive model for queries that a cheaper model could handle. If you don't have routing data, you've found your first problem. RouteLens — a lightweight model router on Cloudflare Workers — can give you this visibility in an afternoon.</p>
-        <p><strong>2. Run a canary model test.</strong> Route 10% of your traffic to a cheaper model and compare quality metrics. If you can't measure the quality difference, the cheaper model is good enough for 100% of that traffic category. CostScope tracks the cost impact automatically.</p>
+        <p><strong>1. Audit your routing distribution.</strong> Pull last month's API logs and calculate what percentage of your spend went to your most expensive model for queries a cheaper model could handle. If you don't have routing data, you've found your first problem. Query your observability backend or use SQL on your logs; this is foundational.</p>
+        <p><strong>2. Run a canary model test.</strong> Route 10% of your traffic to a cheaper model and compare quality metrics. If you can't measure the quality difference, the cheaper model is good enough for 100% of that traffic category. Track cost, latency, and error rate for each variant.</p>
         <p><strong>3. Set cost circuit breakers.</strong> Implement daily and per-request token limits. If a single request exceeds your threshold, fall back to a cheaper model or return an error. This is standard SRE practice — you're applying it to LLM costs instead of CPU usage.</p>
-        <p><strong>4. Build your routing harness.</strong> Start with a simple complexity classifier — even a prompt-length heuristic — and route accordingly. Then iterate. The harness evolves; the model gets swapped. HarnessBuilder generates initial routing configurations from natural language descriptions.</p>
+        <p><strong>4. Build your routing harness.</strong> Start with a simple complexity classifier — even a prompt-length heuristic — and route accordingly. Then iterate. The harness evolves; the model gets swapped. Use a framework like LiteLLM or LangChain's router, or write custom routing logic that grows with your needs.</p>
       </section>
 
       <section class="chapter" id="s6">
