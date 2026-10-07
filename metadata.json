@@ -11,15 +11,6 @@
   {
   "week": 30,
   "date": "2026-07-20",
-  "filename": "articles/golden-paths-global-craters.html",
-  "title": "Golden Paths, Global Craters",
-  "topic": "Platform Standardization",
-  "bold_reframe": "Paved paths don't prevent failure; they standardize the blast radius.",
-  "research_window": "2024-01-01 to 2026-07-20"
-},
-  {
-  "week": 30,
-  "date": "2026-07-20",
   "filename": "articles/guarding-the-garden.html",
   "title": "Guarding the Garden",
   "topic": "Platform Standardization",
@@ -79,15 +70,6 @@
     "topic": "Developer Enablement",
     "bold_reframe": "Developer platforms that accelerate shipping don't give engineers more choices — they give them fewer decisions.",
     "research_window": "2026-02-23 to 2026-06-07"
-  },
-  {
-    "week": 21.1,
-    "date": "2024-05-22",
-    "filename": "articles/watching-the-wrong-dial.html",
-    "title": "Watching the Wrong Dial",
-    "topic": "Observability",
-    "bold_reframe": "A syntactically valid response containing a semantic failure is a 500-level error for your business logic; observability must shift from infrastructure uptime to semantic integrity.",
-    "research_window": "2024-03-25 to 2024-03-31 (Widened to Q1 2024)"
   },
   {
     "week": 21.2,
@@ -187,15 +169,6 @@
     "topic": "Observability",
     "bold_reframe": "AI observability isn't about tracing what the model did; it's about observing what the harness allowed it to do.",
     "research_window": "2025-12-15 to 2026-03-29"
-  },
-  {
-    "week": 12,
-    "date": "2026-03-16",
-    "filename": "articles/paved-with-good-intentions.html",
-    "title": "Paved With Good Intentions",
-    "topic": "Platform Standardization",
-    "bold_reframe": "Paved paths don't eliminate complexity—they concentrate it at the boundary. The most dangerous moment isn't when someone follows the path, it's when they step off it.",
-    "research_window": "2025-12-08 to 2026-03-22"
   },
   {
     "week": 11,

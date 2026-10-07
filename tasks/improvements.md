@@ -8,7 +8,7 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 
 ## P0 — Broken right now
 
-### T1. Fix the two metadata entries whose article file doesn't exist
+### ✅ T1. Fix the two metadata entries whose article file doesn't exist
 - `articles/golden-paths-global-craters.html` (week 30): the file is missing. The card links to a 404.
 - `articles/watching-the-wrong-dial.html` (week 21.1): the file is missing. The card links to a 404.
 - **Done when:** each entry either has its article committed or is removed from `metadata.json`.
@@ -18,7 +18,7 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 - **Fix:** `var week = (typeof raw.week === 'number' || typeof raw.week === 'string') ? String(raw.week).trim() : '';`
 - **Done when:** cards show "Week 31" and so on, and sorting by week reorders the grid.
 
-### T3. Remove the duplicate article entry
+### ✅ T3. Remove the duplicate article entry
 - `articles/paved-with-good-intentions.html` appears twice: week 12 (2026-03-16) and week 18.2 (2026-04-27).
 - **Done when:** each file appears in `metadata.json` exactly once, and the correct week/date is kept.
 
