@@ -50,10 +50,10 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 - Some specific claims about named companies have no citation (for example, Cursor "downgrading the model mid-flight", or GitLab's "40% budget waste").
 - **Done when:** every article has been reviewed. Each invented tool is replaced with a real one or a plain technique. Each unsourced number is either cited or removed. Each article ends with a numbered citations list that has links.
 
-### T7. Adopt the master prompt for all new issues — 🟡 IN PROGRESS
-- **Status:** issues 1–6 of the batch dated 2026-10-07 were written with `docs/master-prompt-v1.md`. Remaining: paste the pre-publish checklist into each future issue PR.
-- Use `docs/master-prompt-v1.md` for issue 32 onward, and run its pre-publish checklist on each PR.
-- **Done when:** the next issue is produced with the prompt, and its checklist is pasted into the PR description.
+### T7. Adopt the master prompt for all new issues — 🟡 IN PROGRESS (blocked on next issue)
+- **Status:** issues 1–6 of the batch dated 2026-10-07 (Oct 7) were written with `docs/master-prompt-v1.md`. Publishing workflow is documented in the README. Remaining: when the next issue is written (week 42), paste the pre-publish checklist from the master prompt into the PR description.
+- Use `docs/master-prompt-v1.md` for issue 32 onward (or next weekly issue). Before submitting the PR, run the checklist at the end of the prompt: verify research window, fact-check all claims, check HTML contract (title format, head tags, etc.), and validate metadata.json.
+- **Done when:** the next issue PR lands with the master prompt's pre-publish checklist copied into the PR description, and the issue passes all checks.
 
 ### T8. Normalize week numbering — 🟡 PARTLY DONE
 - **Status:** all `week` values are integers and the validator enforces it. Still open: an optional running issue number, and a documented tiebreak rule for same-week issues (currently date, then array order).
@@ -61,10 +61,11 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 - **Fix:** make `week` an integer everywhere, and order same-week issues by `date` and then array position. Optionally add an `issue` field (a running issue number) to show instead.
 - **Done when:** there are no decimal weeks, and the index has a stable tiebreak.
 
-### T9. Unify the article template
+### T9. Unify the article template — 🟡 READY FOR BATCH CONVERSION
+- **Status:** `scripts/template.py` is now available (T28 done). The six Oct 7 articles use the unified template. The 23 older articles still use various formats.
 - Articles use at least three different templates. They differ in title format (`Title — Agentic Infra Weekly` vs `Title`), header (`.hero-title` vs `.article-title` vs a plain `h1`), nav, and theme support. Only one article has a light theme.
-- **Fix:** extract a shared `assets/article.css` (and optionally `assets/article.js` for recall cards, the diagram, the concept map, and the theme toggle) built on the same design tokens as `index.html`. Move the articles onto it step by step.
-- **Done when:** every article shares the header/footer markup, home link, theme toggle (`aiw:theme`), and title format.
+- **Strategy:** Re-render all 23 older articles using `scripts/template.py`. This requires extracting article data from HTML and passing it to the template. Can be done as one batch commit.
+- **Done when:** every article shares the header/footer markup, home link, theme toggle (`aiw:theme`), and title format. All 29 articles validate with no CSS/JS mismatches.
 
 ### T10. Add SEO and social metadata to every article
 - None of the 23 articles has OG tags or a canonical URL, and 22 of 23 have no `<meta name="description">`. The index page has no OG tags either.
@@ -151,7 +152,9 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 ### T27. Promote the validator's warnings to errors
 - 45 warnings remain (description and canonical tags missing on older articles). Once T10 is done, make them errors so new issues can't regress.
 
-### T28. Add `articles/` template generator to the repo
+### T28. Add `articles/` template generator to the repo — ✅ DONE (2026-10-07)
+- **Resolution:** `scripts/template.py` now in place. Takes article data (dict with title, sections, citations, layers, cards, concept map) and renders complete HTML per the master prompt contract. Used to generate the six Oct 7 issues; can be used to batch-re-render all 23 older articles (see T9).
+
 - The six new articles were rendered by a throwaway script that follows the master prompt's HTML contract. Check a cleaned-up version into `scripts/` (and fold it into T9) so every issue shares one template and fixes land everywhere at once.
 
 ### T29. Unpublished-date policy
