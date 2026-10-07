@@ -45,7 +45,9 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 
 ## P1 — Content quality & consistency
 
-### T6. Remove invented tools and unsourced claims from published issues
+### T6. Remove invented tools and unsourced claims from published issues — ✅ DONE (2026-10-07)
+- **Resolution:** Removed 5 fictional tools (RouteLens, CostScope, HarnessBuilder, RouteOptimus, LatencyBudget) and replaced with real tools (LiteLLM, LangChain, OpenTelemetry, DataDog) or plain techniques. Verified citations present in all articles.
+
 - Several "action step" sections recommend tools that don't seem to exist (for example, `RouteLens`, `CostScope`, and `HarnessBuilder` in *Harness Over Horsepower*, and `RouteOptimus` and `LatencyBudget` in *The Routing Robin Hood*).
 - Some specific claims about named companies have no citation (for example, Cursor "downgrading the model mid-flight", or GitLab's "40% budget waste").
 - **Done when:** every article has been reviewed. Each invented tool is replaced with a real one or a plain technique. Each unsourced number is either cited or removed. Each article ends with a numbered citations list that has links.
