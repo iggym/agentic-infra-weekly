@@ -79,7 +79,9 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
 - There are 7 topics in use, and *Harness Over Horsepower* is tagged `Observability` in metadata but shows `AI Platform Architecture` on the page.
 - **Done when:** the canonical list lives in one place (the master prompt plus validation, see T14), and every article's on-page topic matches its metadata.
 
-### T13. Write a real README
+### T13. Write a real README — ✅ DONE (2026-10-07)
+- **Resolution:** README now covers publication scope, repo layout with directory map, metadata.json schema with validation rules, three-step publishing workflow (use master prompt, generate HTML, add metadata), preview instructions, and link to improvements backlog.
+
 - `README.md` contains only the repo name.
 - **Done when:** the README covers what the publication is, the site URL, the repo layout (`index.html`, `metadata.json`, `articles/`, `docs/`, `tasks/`), the `metadata.json` schema, how to publish an issue (link the master prompt), and how to preview locally (`python3 -m http.server`).
 
