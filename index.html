@@ -988,7 +988,7 @@
     if (!isSafeUrl(filename)) return null; // an article we cannot safely link to is dropped
     var title = cleanText(raw.title, 'Untitled issue');
     var topic = cleanText(raw.topic, 'Uncategorized');
-    var week = cleanText(raw.week, '');
+    var week = (typeof raw.week === 'number' && isFinite(raw.week)) ? String(raw.week) : cleanText(raw.week, '');
     var bold_reframe = cleanText(raw.bold_reframe, '');
     var dateObj = parseDate(raw.date);
     return {
@@ -1210,7 +1210,7 @@
         copy.sort(function (a, b) { return a.topic.localeCompare(b.topic) || sortByDateDesc(a, b); });
         break;
       case 'week':
-        copy.sort(function (a, b) { return (parseFloat(b.week) || 0) - (parseFloat(a.week) || 0); });
+        copy.sort(function (a, b) { return ((parseFloat(b.week) || 0) - (parseFloat(a.week) || 0)) || sortByDateDesc(a, b); });
         break;
       case 'newest':
       default:

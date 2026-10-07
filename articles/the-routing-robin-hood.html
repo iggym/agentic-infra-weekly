@@ -295,9 +295,9 @@
           <div class="recall-question">Why did LangChain update its router for Anthropic prompt caching?</div>
           <div class="recall-answer">To execute state-aware cost arbitrage, routing to Anthropic for cache hits even if base latency was higher.</div>
         </div>
-        <p>1. Audit your prompt flows. Use RouteOptimus to simulate multi-model costs.<br>
-        2. Implement semantic caching with Redis.<br>
-        3. Set latency budgets with a tracer like LatencyBudget.</p>
+        <p>1. Audit your prompt flows. Run a cost simulation: collect a week of production prompts and score each by length and complexity, then calculate what switching models would cost.<br>
+        2. Implement semantic caching with Redis or your chosen cache backend.<br>
+        3. Set latency budgets using your observability platform (DataDog, New Relic, or OpenTelemetry). Monitor the 99th percentile latency per model.</p>
       </section>
 
       <section class="chapter" id="s6">
