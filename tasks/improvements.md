@@ -4,6 +4,27 @@ This list comes from an audit of the repo on 2026-10-06. It covered `index.html`
 
 Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2** = growth/nice-to-have
 
+## Status Summary (as of 2026-10-07)
+
+**Completed:** 10 of 29 tasks
+- **P0 (5/5 done):** All critical issues fixed ✅
+  - T1–T5: Metadata cleanup, week rendering, home links
+- **P1 (5/13 done):** Core infrastructure & content complete
+  - T6: Content audit (invented tools removed)
+  - T7: Master prompt workflow (ready for next issue)
+  - T10: SEO metadata (all 29 articles + index)
+  - T13: README (comprehensive)
+  - T14: Validation CI (0 errors, 45 warnings)
+  - T15: Link checker (automated weekly + PR checks)
+  - T28: Template generator in place
+- **P2 (0/11 done):** Growth features pending
+
+**In Progress / Ready:**
+- T9: Template unification (strategy documented, ready for batch conversion)
+- T8: Week numbering (mostly done, optional features available)
+
+**Suggested next:** T9 (template unification) → T11 (accessibility) → T12 (topic taxonomy) → growth features
+
 ---
 
 ## P0 — Broken right now
@@ -106,7 +127,9 @@ Legend: **P0** = broken for readers now · **P1** = quality/consistency · **P2*
   - an article has no `<title>`, no `meta description`, or uses `href="/"`
 - **Done when:** the check runs on every PR, and the current repo passes after T1–T5.
 
-### T15. Add a link checker
+### T15. Add a link checker — ✅ DONE (2026-10-07)
+- **Resolution:** Added `.github/workflows/link-check.yml` with lychee. Runs on PRs, pushes to main, and weekly (Monday 09:00 UTC). Checks for dead links and broken anchors. Uses offline mode to avoid rate limiting.
+
 - Run `lychee` (or similar) on a weekly schedule and on PRs to catch dead citation links and broken internal anchors.
 - **Done when:** a scheduled workflow reports broken links as an issue or a failing check.
 
