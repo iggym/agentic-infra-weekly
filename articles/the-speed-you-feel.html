@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Speed You Feel — Agentic Infra Weekly</title>
+<meta name="description" content="AI coding tools are judged by how fast developers feel, not how fast work ships. Until you measure delivery outcomes, your AI rollout runs on vibes, not…">
+<link rel="canonical" href="https://iggym.github.io/agentic-infra-weekly/articles/the-speed-you-feel.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Agentic Infra Weekly">
+<meta property="og:title" content="The Speed You Feel">
+<meta property="og:description" content="AI coding tools are judged by how fast developers feel, not how fast work ships. Until you measure delivery outcomes, your AI rollout runs on vibes, not evidence.">
+<meta property="og:url" content="https://iggym.github.io/agentic-infra-weekly/articles/the-speed-you-feel.html">
+<meta name="twitter:card" content="summary">
+<meta property="article:published_time" content="2026-10-07">
+<meta property="article:section" content="Developer Enablement">
+<style>
+:root{color-scheme:dark;--bg:#090b10;--bg-raised:#0e1119;--surface:#12161f;--surface-hover:#171c28;--border:#232a38;--border-strong:#33405a;--text:#eef1f6;--text-muted:#9aa4b8;--text-faint:#62697a;--accent:#4f8cff;--accent-strong:#7cabff;--accent-glow:rgba(79,140,255,.14);--signal:#f5a623;--ok:#34d399;--danger:#f26d6d;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;--font-mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;--radius:10px}
+[data-theme="light"]{color-scheme:light;--bg:#f6f7fa;--bg-raised:#fff;--surface:#fff;--surface-hover:#f0f2f7;--border:#dde1ea;--border-strong:#c3cadb;--text:#10141d;--text-muted:#4b5468;--text-faint:#6b7489;--accent:#2f66d9;--accent-strong:#1e4fbf;--accent-glow:rgba(47,102,217,.09);--signal:#9a6008}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.65;font-size:1.05rem}
+a{color:var(--accent-strong)}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--accent);color:#06101f;font-weight:700;padding:.7rem 1.1rem;z-index:100;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.78rem;color:var(--text-muted)}
+.topbar a{color:var(--text);text-decoration:none;font-weight:700}
+.topbar .crumb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.topbar .spacer{flex:1}
+.theme-toggle{font:inherit;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:.35rem .6rem;cursor:pointer;min-height:32px}
+.theme-toggle:hover{color:var(--text)}
+.layout{max-width:1080px;margin:0 auto;padding:0 1rem 4rem;display:grid;grid-template-columns:minmax(0,1fr);gap:2rem}
+@media (min-width:980px){.layout{grid-template-columns:200px minmax(0,720px);justify-content:center}}
+nav.toc{display:none}
+@media (min-width:980px){nav.toc{display:block;position:sticky;top:4rem;align-self:start;margin-top:3.2rem;font-size:.85rem}}
+nav.toc ol{list-style:none;padding:0;margin:0;border-left:1px solid var(--border)}
+nav.toc a{display:block;padding:.3rem .8rem;color:var(--text-muted);text-decoration:none}
+nav.toc a:hover{color:var(--text);background:var(--surface-hover)}
+article{min-width:0}
+.kicker{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--signal);margin:3rem 0 .6rem}
+h1{font-size:clamp(2rem,6vw,2.9rem);line-height:1.1;letter-spacing:-.025em;margin:0}
+.byline{color:var(--text-muted);font-family:var(--font-mono);font-size:.8rem;margin:.9rem 0 2.2rem}
+h2{font-size:1.45rem;letter-spacing:-.01em;margin:2.8rem 0 .8rem;scroll-margin-top:4rem}
+section{scroll-margin-top:4rem}
+p{margin:0 0 1.05rem}
+blockquote.reframe{margin:1.5rem 0;padding:1.1rem 1.3rem;border-left:3px solid var(--accent);background:var(--accent-glow);border-radius:0 var(--radius) var(--radius) 0;font-size:1.2rem;font-weight:650;line-height:1.45}
+.oneliner{font-family:var(--font-mono);font-size:.95rem;color:var(--signal);border:1px dashed var(--border-strong);border-radius:var(--radius);padding:.8rem 1rem;margin:1.4rem 0}
+ol.steps{padding-left:1.3rem}
+ol.steps li{margin-bottom:.8rem}
+.challenge{border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--radius);padding:1.1rem 1.3rem}
+.challenge p:last-child{margin:0}
+code{font-family:var(--font-mono);font-size:.88em;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.05em .35em}
+sup a{text-decoration:none;font-size:.75em}
+.hint{color:var(--text-faint);font-size:.85rem;margin-top:-.4rem}
+.layers{display:flex;flex-direction:column;gap:.5rem}
+.layer{width:100%;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:8px;padding:.75rem 1rem;cursor:pointer}
+.layer:hover{background:var(--surface-hover)}
+.layer .lname{display:block;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.layer .ltech{font-weight:650}
+.layer .lrole{display:block;color:var(--text-muted);font-size:.92rem;margin-top:.35rem}
+.layer[aria-expanded="false"] .lrole{display:none}
+.layer:nth-child(2){border-left-color:var(--ok)}.layer:nth-child(3){border-left-color:var(--signal)}.layer:nth-child(4){border-left-color:#c084fc}.layer:nth-child(5){border-left-color:var(--danger)}.layer:nth-child(6){border-left-color:#22d3ee}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem}
+.card{font:inherit;text-align:left;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;min-height:130px}
+.card:hover{border-color:var(--border-strong)}
+.card .face{display:block;font-family:var(--font-mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:.4rem}
+.card .a{display:none;color:var(--text-muted)}
+.card[aria-expanded="true"]{border-color:var(--accent)}
+.card[aria-expanded="true"] .q{display:none}
+.card[aria-expanded="true"] .a{display:block}
+.recall-count{font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)}
+.map svg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.map .edge{stroke:var(--border-strong);stroke-width:1.5;transition:opacity .15s,stroke .15s}
+.map .node circle{fill:var(--bg-raised);stroke:var(--accent);stroke-width:1.5}
+.map .node.core circle{fill:var(--accent-glow);stroke-width:2.5}
+.map .node text{fill:var(--text);font-family:var(--font-sans);font-size:12px;text-anchor:middle;pointer-events:none}
+.map .node{cursor:pointer;outline:none}
+.map .node:focus-visible circle{stroke:var(--signal);stroke-width:3}
+.map.active .edge{opacity:.15}
+.map.active .edge.on{opacity:1;stroke:var(--accent)}
+.map.active .node{opacity:.4}
+.map.active .node.on{opacity:1}
+#citations ol{padding-left:1.3rem;font-size:.9rem;color:var(--text-muted);overflow-wrap:anywhere}
+#citations li{margin-bottom:.5rem;scroll-margin-top:4rem}
+#citations li:target{color:var(--text)}
+footer.site-footer{border-top:1px solid var(--border);margin-top:3rem;padding-top:1.2rem;display:flex;flex-wrap:wrap;gap:1rem;font-size:.9rem}
+footer.site-footer a{color:var(--text-muted)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar">
+  <a href="../index.html">Agentic Infra Weekly</a><span class="crumb">/ The Speed You Feel</span>
+  <span class="spacer"></span><span>5 min read</span>
+  <button type="button" class="theme-toggle" id="theme-toggle">Light mode</button>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="Sections"><ol><li><a href="#s1">Twenty Percent Faster, Nineteen Percent Slower</a></li><li><a href="#s2">Feelings Aren&#x27;t Metrics</a></li><li><a href="#s3">DORA Saw It at Scale</a></li><li><a href="#s4">Reading the Evidence Carefully</a></li><li><a href="#s5">Grain of Salt</a></li><li><a href="#s6">Measure the Line, Not the Station</a></li><li><a href="#s7">First 24 Hours</a></li><li><a href="#architecture">Architecture</a></li><li><a href="#recall">Recall Cards</a></li><li><a href="#concept-map">Concept Map</a></li><li><a href="#citations">Citations</a></li></ol></nav>
+<main id="main">
+<article>
+<p class="kicker">Developer Enablement · Week 41</p>
+<h1>The Speed You Feel</h1>
+<p class="byline"><time datetime="2026-10-07">Oct 7, 2026</time> · 5 min read</p>
+<section id="s1" aria-labelledby="s1-h"><h2 id="s1-h">Twenty Percent Faster, Nineteen Percent Slower</h2>
+<p>Between February and June 2025, the research group METR ran an experiment that most engineering leaders hadn't thought to run<sup><a href="#c1">[1]</a></sup>. They recruited 16 experienced open-source developers, people with years of history on large, mature repositories they knew well. Each brought a list of real issues from their own projects: bugs, features, refactors. In total there were 246 tasks.</p>
+<p>Each task was randomly assigned. On some, the developer could use any AI tools they liked, mostly Cursor Pro with Claude 3.5 and 3.7 Sonnet, the leading tools at the time. On the others, AI was off-limits. The developers recorded their screens and reported how long each task took.</p>
+<p>Before starting, the developers predicted that AI would make them 24% faster. After finishing, they estimated it had made them about 20% faster.</p>
+<p>The measured result was that, with AI allowed, they took 19% <em>longer</em><sup><a href="#c2">[2]</a></sup>.</p>
+<p>The gap between those numbers matters more than any one of them. These were experts working in their own codebases, and they couldn't feel the direction of the effect, let alone its size. If they couldn't, neither can a survey of your engineering org.</p>
+</section><section id="s2" aria-labelledby="s2-h"><h2 id="s2-h">Feelings Aren&#x27;t Metrics</h2>
+<blockquote class="reframe">AI coding tools are judged by how fast developers feel, not how fast work ships. Until you measure delivery outcomes, your AI rollout runs on vibes, not evidence.</blockquote>
+<p>Most AI-tooling decisions today rest on three numbers: seat adoption, acceptance rate of suggestions, and a satisfaction survey. All three measure activity or sentiment. None of them measures whether work reaches users faster or more safely.</p>
+<p>That would be fine if feeling faster tracked being faster. The METR result is a controlled demonstration that, at least for experts in familiar code, it doesn't. Generating code feels like progress. Reviewing, correcting, and waiting on that code doesn't feel like anything.</p>
+<p class="oneliner">The keystrokes you didn't type are visible. The review time you added is not.</p>
+</section><section id="s3" aria-labelledby="s3-h"><h2 id="s3-h">DORA Saw It at Scale</h2>
+<p>The METR study was small and specific. The 2024 DORA report, built on survey data from thousands of technology professionals, points in a similar direction at industry scale<sup><a href="#c3">[3]</a></sup>. It found that more AI adoption was associated with real gains in individual flow, job satisfaction, code quality, and code review speed. It was also associated with an estimated 1.5% <em>decrease</em> in delivery throughput and a 7.2% <em>decrease</em> in delivery stability.</p>
+<p>DORA's explanation is the hidden connection. AI makes it cheap to produce more code, which means larger changes. Decades of delivery research, including DORA's own, show that batch size drives risk: big changes are slower to review, harder to test, and more likely to fail. AI improved the parts of the process developers feel, while quietly increasing the batch size that delivery performance depends on.</p>
+<p>This is an old lesson from manufacturing and lean flow: optimizing one station doesn't speed up the line if it piles inventory in front of the next station. Code that's written faster but waits longer in review is inventory.</p>
+<p>The SPACE framework, published by Nicole Forsgren and colleagues in 2021, warned against exactly this trap<sup><a href="#c4">[4]</a></sup>. Productivity can't be captured by any one dimension, and activity metrics such as lines of code, commits, or suggestions accepted are especially easy to misread. Satisfaction is a valid dimension, but it isn't a substitute for performance.</p>
+</section><section id="s4" aria-labelledby="s4-h"><h2 id="s4-h">Reading the Evidence Carefully</h2>
+<p>Precision matters, because both findings are easy to overstate. METR was explicit that its results do not show AI tools fail to speed up most developers<sup><a href="#c1">[1]</a></sup>. The study covered experienced developers working in large codebases they already knew deeply, which is the setting where an assistant adds the least new information. Less experienced developers, unfamiliar code, and greenfield work could look very different. The tools have also improved since early 2025.</p>
+<p>DORA's numbers are correlations from survey data, not a controlled experiment. They describe associations across many organizations, not what will happen in yours<sup><a href="#c3">[3]</a></sup>.</p>
+<p>But the shared lesson survives every caveat: <strong>self-reported productivity and measured delivery can diverge, and the divergence can be large.</strong> The methodological point is the systems-thinking one. You measure the outcome at the end of the pipeline (lead time, change failure rate) rather than throughput at one stage, and you use controls rather than impressions.</p>
+</section><section id="s5" aria-labelledby="s5-h"><h2 id="s5-h">Grain of Salt</h2>
+<p>The strongest counterargument is that these studies are already stale. Agentic coding tools in late 2025 and 2026 work very differently from autocomplete and chat in early 2025, and developers learn how to use them over time.</p>
+<p>That may well be true, and it's exactly why the thesis matters. If the tools are better now, measurement will show it. The point isn't that AI is slow. It's that you can't tell from the inside. Each new generation of tools arrives with the same confident self-reports. Without delivery metrics and some form of comparison, you'll have no way to tell a real improvement from a new vibe.</p>
+</section><section id="s6" aria-labelledby="s6-h"><h2 id="s6-h">Measure the Line, Not the Station</h2>
+<ol class="steps">
+<li><strong>Baseline the four DORA metrics now.</strong> Measure deployment frequency, lead time for changes, change failure rate, and time to restore service for your main services<sup><a href="#c5">[5]</a></sup>. If AI tooling is already rolled out, baseline anyway. Trends still tell you something.</li>
+<li><strong>Track batch size.</strong> Add median and p90 pull request size (lines changed) and review time to your dashboard. If AI is inflating changes, you'll see it here before you see it in incidents.</li>
+<li><strong>Run a real comparison.</strong> Pick a set of comparable tasks and randomly assign which ones get AI assistance, the way METR did. Even a small internal trial with a few dozen tasks beats a satisfaction survey.</li>
+<li><strong>Keep satisfaction, but label it.</strong> Survey developer experience, because it matters for retention. Report it next to delivery metrics, never in place of them.</li>
+<li><strong>Coach small batches.</strong> Make "split the AI-generated change before review" an explicit team norm, and set a soft size limit on PRs.</li>
+</ol>
+</section><section id="s7" aria-labelledby="s7-h"><h2 id="s7-h">First 24 Hours</h2>
+<div class="challenge"><p>Pull the median pull request size and median time-to-merge for your team for the three months before your AI tooling rollout and the most recent three months. Put the four numbers side by side. If the PRs got bigger and slower to merge, your developers might still feel faster, and the line is telling you something different.</p></div>
+</section>
+<section id="architecture" aria-labelledby="architecture-h"><h2 id="architecture-h">Architecture</h2>
+<p class="hint">A delivery pipeline where AI speeds up one stage and the rest absorbs the cost. Select a layer to expand it.</p>
+<div class="layers"><button type="button" class="layer" aria-expanded="false"><span class="lname">Tools &amp; SDKs</span><span class="ltech">AI coding assistants</span><span class="lrole">Make code generation faster and feel productive. This is where the perceived speedup lives.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Orchestration</span><span class="ltech">Pull request review</span><span class="lrole">Where larger AI-generated changes queue up. Review time is the hidden cost.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Data / Runtime</span><span class="ltech">CI test suites</span><span class="lrole">Bigger batches mean longer, flakier runs and harder failure triage.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Observability</span><span class="ltech">DORA metrics dashboard</span><span class="lrole">Lead time and change failure rate show the outcome at the end of the line.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Security / Governance</span><span class="ltech">Change approval and policy</span><span class="lrole">Larger diffs are harder to review for security issues and policy violations.</span></button><button type="button" class="layer" aria-expanded="false"><span class="lname">Infrastructure</span><span class="ltech">Deployment pipeline</span><span class="lrole">Delivery stability is measured here, after every upstream stage has added its cost.</span></button></div></section>
+<section id="recall" aria-labelledby="recall-h"><h2 id="recall-h">Recall Cards</h2>
+<p class="recall-count" id="recall-count" aria-live="polite"></p>
+<div class="cards"><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What is the bold reframe?</span><span class="a">AI tools are judged by perceived speed. Only delivery outcomes such as lead time and change failure rate show whether work actually ships faster.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What did METR find about developers&#x27; perceptions?</span><span class="a">Developers predicted a 24% speedup and afterward estimated about 20%, but measured completion time was 19% slower with AI allowed.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">What did DORA 2024 associate with more AI adoption?</span><span class="a">Gains in flow, satisfaction, code quality, and review speed, alongside an estimated 1.5% drop in throughput and a 7.2% drop in stability.</span></button><button type="button" class="card" aria-expanded="false"><span class="face">Question</span><span class="q">Why can a faster coding step slow delivery down?</span><span class="a">It inflates batch size. Larger changes take longer to review and test and fail more often, so the work piles up downstream.</span></button></div></section>
+<section id="concept-map" aria-labelledby="concept-map-h"><h2 id="concept-map-h">Concept Map</h2>
+<p class="hint">Hover or focus a node (Tab, then Enter) to highlight its connections.</p>
+<div class="map"><svg viewBox="0 0 640 420" role="group" aria-label="Concept map: Delivery Outcomes"><line class="edge" data-a="core" data-b="perc" x1="320" y1="210" x2="320" y2="50"/><line class="edge" data-a="core" data-b="batch" x1="320" y1="210" x2="500" y2="130"/><line class="edge" data-a="core" data-b="dora" x1="320" y1="210" x2="500" y2="290"/><line class="edge" data-a="core" data-b="space" x1="320" y1="210" x2="320" y2="370"/><line class="edge" data-a="core" data-b="rct" x1="320" y1="210" x2="140" y2="290"/><line class="edge" data-a="core" data-b="flow" x1="320" y1="210" x2="140" y2="130"/><line class="edge" data-a="perc" data-b="rct" x1="320" y1="50" x2="140" y2="290"/><line class="edge" data-a="batch" data-b="flow" x1="500" y1="130" x2="140" y2="130"/><line class="edge" data-a="batch" data-b="dora" x1="500" y1="130" x2="500" y2="290"/><line class="edge" data-a="space" data-b="perc" x1="320" y1="370" x2="320" y2="50"/><g class="node core" data-id="core" tabindex="0" role="button" aria-label="Delivery Outcomes"><circle cx="320" cy="210" r="52"/><text><tspan x="320" y="207">Delivery</tspan><tspan x="320" y="221">Outcomes</tspan></text></g><g class="node" data-id="perc" tabindex="0" role="button" aria-label="Perceived Speed"><circle cx="320" cy="50" r="44"/><text><tspan x="320" y="47">Perceived</tspan><tspan x="320" y="61">Speed</tspan></text></g><g class="node" data-id="batch" tabindex="0" role="button" aria-label="Batch Size"><circle cx="500" cy="130" r="44"/><text><tspan x="500" y="134">Batch Size</tspan></text></g><g class="node" data-id="dora" tabindex="0" role="button" aria-label="DORA Metrics"><circle cx="500" cy="290" r="44"/><text><tspan x="500" y="294">DORA Metrics</tspan></text></g><g class="node" data-id="space" tabindex="0" role="button" aria-label="SPACE Framework"><circle cx="320" cy="370" r="44"/><text><tspan x="320" y="367">SPACE</tspan><tspan x="320" y="381">Framework</tspan></text></g><g class="node" data-id="rct" tabindex="0" role="button" aria-label="Controlled Trials"><circle cx="140" cy="290" r="44"/><text><tspan x="140" y="287">Controlled</tspan><tspan x="140" y="301">Trials</tspan></text></g><g class="node" data-id="flow" tabindex="0" role="button" aria-label="Lean Flow"><circle cx="140" cy="130" r="44"/><text><tspan x="140" y="134">Lean Flow</tspan></text></g></svg></div>
+<p class="hint" id="map-status" aria-live="polite"></p></section>
+<section id="citations" aria-labelledby="citations-h"><h2 id="citations-h">Citations</h2><ol><li id="c1">METR, “Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity,” July 10, 2025. <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/" target="_blank" rel="noopener">https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/</a></li><li id="c2">Joel Becker et al., METR, arXiv:2507.09089, 2025. <a href="https://arxiv.org/abs/2507.09089" target="_blank" rel="noopener">https://arxiv.org/abs/2507.09089</a></li><li id="c3">Google Cloud DORA, “Accelerate State of DevOps Report 2024.” <a href="https://dora.dev/research/2024/dora-report/" target="_blank" rel="noopener">https://dora.dev/research/2024/dora-report/</a></li><li id="c4">Nicole Forsgren et al., “The SPACE of Developer Productivity,” ACM Queue, 2021. <a href="https://queue.acm.org/detail.cfm?id=3454124" target="_blank" rel="noopener">https://queue.acm.org/detail.cfm?id=3454124</a></li><li id="c5">DORA, “DORA's software delivery performance metrics.” <a href="https://dora.dev/guides/dora-metrics-four-keys/" target="_blank" rel="noopener">https://dora.dev/guides/dora-metrics-four-keys/</a></li></ol></section>
+</article>
+<footer class="site-footer">
+  <a href="#main">Back to top</a><a href="../index.html">All issues</a>
+  <a href="https://twitter.com/intent/tweet?text=The%20Speed%20You%20Feel%20%E2%80%94%20Agentic%20Infra%20Weekly&amp;url=https%3A%2F%2Figgym.github.io%2Fagentic-infra-weekly%2Farticles%2Fthe-speed-you-feel.html" target="_blank" rel="noopener">Share on X</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fagentic-infra-weekly%2Farticles%2Fthe-speed-you-feel.html" target="_blank" rel="noopener">Share on LinkedIn</a>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  'use strict';
+  var KEY='aiw:theme', root=document.documentElement, btn=document.getElementById('theme-toggle');
+  function sysLight(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;}
+  function apply(choice){
+    var t=choice==='system'?(sysLight()?'light':'dark'):(choice==='light'?'light':'dark');
+    root.setAttribute('data-theme',t);
+    btn.textContent=t==='light'?'Dark mode':'Light mode';
+    btn.setAttribute('aria-label','Switch to '+(t==='light'?'dark':'light')+' theme');
+  }
+  var saved='system';
+  try{saved=localStorage.getItem(KEY)||'system';}catch(e){}
+  apply(saved);
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='light'?'dark':'light';
+    try{localStorage.setItem(KEY,next);}catch(e){}
+    apply(next);
+  });
+
+  document.querySelectorAll('.layer').forEach(function(el){
+    el.addEventListener('click',function(){el.setAttribute('aria-expanded',String(el.getAttribute('aria-expanded')!=='true'));});
+  });
+
+  var cards=document.querySelectorAll('.card'), count=document.getElementById('recall-count');
+  function updateCount(){
+    var n=document.querySelectorAll('.card[aria-expanded="true"]').length;
+    count.textContent=n+' / '+cards.length+' revealed';
+  }
+  cards.forEach(function(el){
+    el.addEventListener('click',function(){el.setAttribute('aria-expanded',String(el.getAttribute('aria-expanded')!=='true'));updateCount();});
+  });
+  updateCount();
+
+  var map=document.querySelector('.map'), status=document.getElementById('map-status');
+  if(map){
+    var edges=map.querySelectorAll('.edge'), nodes=map.querySelectorAll('.node');
+    function on(id,label){
+      map.classList.add('active');
+      var linked=[];
+      edges.forEach(function(e){
+        var hit=e.getAttribute('data-a')===id||e.getAttribute('data-b')===id;
+        e.classList.toggle('on',hit);
+        if(hit)linked.push(e.getAttribute('data-a')===id?e.getAttribute('data-b'):e.getAttribute('data-a'));
+      });
+      var names=[];
+      nodes.forEach(function(n){
+        var hit=n.getAttribute('data-id')===id||linked.indexOf(n.getAttribute('data-id'))!==-1;
+        n.classList.toggle('on',hit);
+        if(hit&&n.getAttribute('data-id')!==id)names.push(n.getAttribute('aria-label'));
+      });
+      status.textContent=label+' connects to: '+names.join(', ')+'.';
+    }
+    function off(){map.classList.remove('active');status.textContent='';}
+    nodes.forEach(function(n){
+      var id=n.getAttribute('data-id'), label=n.getAttribute('aria-label');
+      n.addEventListener('mouseenter',function(){on(id,label);});
+      n.addEventListener('mouseleave',off);
+      n.addEventListener('focus',function(){on(id,label);});
+      n.addEventListener('blur',off);
+      n.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();on(id,label);}});
+    });
+  }
+})();
+</script>
+</body>
+</html>
